@@ -285,143 +285,96 @@
   const decisionTree = {
     startNode: "q_ohc",
     nodes: {
-      // 1. OHC Check
+      // Step 1: Ontario Health Card
       q_ohc: {
         question: "Does the patient have an Ontario Health Card?",
         options: [
-          { text: "Yes", nextNode: "q_ohc_validation" },
-          { text: "No", nextNode: "q_reside_ontario" }
+          {
+            text: "Yes",
+            result: { financialClass: "OHCN", tip: "Acquire proof and/or validate" }
+          },
+          { text: "No", nextNode: "q_live_ontario" }
         ]
       },
 
-      // Branch: Yes to OHC
-      q_ohc_validation: {
-        question: "Select the patient's Ontario Health Card validation status:",
+      // Step 2: Live in Ontario?
+      q_live_ontario: {
+        question: "Does the patient live in Ontario?",
+        options: [
+          { text: "Yes", nextNode: "q_parents_pr_cit" },
+          { text: "No", nextNode: "q_live_other_province" }
+        ]
+      },
+
+      // --- BRANCH: Lives in Ontario (Yes) ---
+      q_parents_pr_cit: {
+        question: "Do BOTH parents/guardians have Canadian citizenship or PR?",
         options: [
           {
-            text: "Yes, and validation succeeds",
-            result: { financialClass: "OHCN", tip: "Placeholder" }
+            text: "Yes",
+            result: { financialClass: "Ontario Uninsured", tip: "Acquire proof and/or validate" }
+          },
+          { text: "No", nextNode: "q_insurance_type_ont" }
+        ]
+      },
+
+      q_insurance_type_ont: {
+        question: "Does the patient have private insurance/UHIP/IFHP?",
+        options: [
+          {
+            text: "University Health Insurance Plan (UHIP)",
+            result: { financialClass: "UHIP", tip: "Acquire proof and/or validate" }
           },
           {
-            text: "Yes, but validation fails",
-            result: { financialClass: "OHCN", tip: "Placeholder" }
+            text: "Interim Federal Health Plan (IFHP)",
+            result: { financialClass: "Refugee Health Plan", tip: "Acquire proof and/or validate" }
           },
           {
-            text: "Yes, but patient forgot their health card at home",
-            result: { financialClass: "OHCN but coverage unconfirmed", tip: "Placeholder" }
+            text: "Private Insurance",
+            result: { financialClass: "SK IPP Insurance CAD", tip: "Acquire proof and/or validate" }
+          },
+          {
+            text: "No Insurance / None of the above",
+            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Acquire proof and/or validate" }
           }
         ]
       },
 
-      // 2. Reside in Ontario Check
-      q_reside_ontario: {
-        question: "Do the patient and parent(s)/guardian(s) permanently reside in Ontario?",
+      // --- BRANCH: Lives in Ontario (No) ---
+      q_live_other_province: {
+        question: "Does the patient live in another province in Canada?",
         options: [
-          { text: "Yes", nextNode: "q_ifhp" },
-          { text: "No", nextNode: "q_reside_other_province" }
+          { text: "Yes", nextNode: "q_other_prov_card" },
+          { text: "No", nextNode: "q_non_cdn_insurance" }
         ]
       },
 
-      // --- BRANCH: Reside in Ontario (Yes) ---
-      q_ifhp: {
-        question: "Does the patient have insurance coverage through the Interim Federal Health Program (IFHP)?",
+      // Sub-branch: Lives in another province (Yes)
+      q_other_prov_card: {
+        question: "Does the patient have a Health Card from another province?",
         options: [
           {
             text: "Yes",
-            result: { financialClass: "Refugee Health Plan", tip: "Placeholder" }
+            result: { financialClass: "Out of Province (OOP) Insured", tip: "Acquire proof and/or validate" }
           },
-          { text: "No", nextNode: "q_uhip" }
-        ]
-      },
-      q_uhip: {
-        question: "Does the patient (not just their parent(s)/guardian(s)) have University Health Insurance (UHIP)?",
-        options: [
           {
-            text: "Yes",
-            result: { financialClass: "UHIP", tip: "Placeholder" }
-          },
-          { text: "No", nextNode: "q_ont_private_ins" }
+            text: "No",
+            result: { financialClass: "Out of Province (OOP) Uninsured", tip: "Acquire proof and/or validate" }
+          }
         ]
       },
-      q_ont_private_ins: {
+
+      // Sub-branch: Lives in another province (No / Non-Canadian Resident)
+      q_non_cdn_insurance: {
         question: "Does the patient have private insurance?",
         options: [
           {
             text: "Yes",
-            result: { financialClass: "SK IPP Insurance CAD", tip: "Placeholder" }
-          },
-          { text: "No", nextNode: "q_ont_visitor" }
-        ]
-      },
-      q_ont_visitor: {
-        question: "Is the patient in Canada on a visitor visa?",
-        options: [
-          {
-            text: "Yes",
-            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Placeholder" }
-          },
-          { text: "No", nextNode: "q_ont_parents_status" }
-        ]
-      },
-      q_ont_parents_status: {
-        question: "Do both of the patient's parent(s)/guardian(s) have either Canadian citizenship or permanent residency?",
-        options: [
-          {
-            text: "Yes",
-            result: { financialClass: "Ontario Uninsured", tip: "Placeholder" }
+            result: { financialClass: "SK IPP Insurance CAD", tip: "Acquire proof and/or validate" }
           },
           {
             text: "No",
-            result: { financialClass: "Contact supervisor", tip: "Placeholder" }
-          }
-        ]
-      },
-
-      // --- BRANCH: Reside in Ontario (No) ---
-      q_reside_other_province: {
-        question: "Does the patient permanently reside in another province of Canada?",
-        options: [
-          { text: "Yes", nextNode: "q_valid_provincial_card" },
-          { text: "No", nextNode: "q_non_ont_private_ins" }
-        ]
-      },
-
-      // Branch: Reside in another Canadian province (Yes)
-      q_valid_provincial_card: {
-        question: "Does the patient have a valid provincial health card?",
-        options: [
-          {
-            text: "Yes",
-            result: { financialClass: "Out of Province (OOP) Insured", tip: "Placeholder" }
-          },
-          {
-            text: "No",
-            result: { financialClass: "Out of Province (OOP) Uninsured", tip: "Placeholder" }
-          }
-        ]
-      },
-
-      // Branch: Reside in another Canadian province (No)
-      q_non_ont_private_ins: {
-        question: "Does the patient have private insurance?",
-        options: [
-          {
-            text: "Yes",
-            result: { financialClass: "SK IPP Insurance CAD", tip: "Placeholder" }
-          },
-          { text: "No", nextNode: "q_non_ont_visitor" }
-        ]
-      },
-      q_non_ont_visitor: {
-        question: "Is the patient in Canada on a visitor visa?",
-        options: [
-          {
-            text: "Yes",
-            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Placeholder" }
-          },
-          {
-            text: "No",
-            result: { financialClass: "Contact supervisor", tip: "Placeholder" }
+            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Acquire proof and/or validate" }
           }
         ]
       }
