@@ -205,7 +205,7 @@
     max-width: 680px;
     margin: 20px 0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    font-family: 'DM Serif Display', serif;
+    font-family: sans-serif;
   }
   .dt-question {
     font-size: 18px;
@@ -222,7 +222,7 @@
     border-radius: 6px;
     text-align: left;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 14px;
     font-family: inherit;
     transition: all 0.2s ease;
     text-transform: none !important;
@@ -250,7 +250,7 @@
     border-radius: 6px;
     padding: 10px 14px;
     color: #713f12;
-    font-size: 12px;
+    font-size: 14px;
   }
   .dt-reset-btn {
     margin-top: 16px;
@@ -259,6 +259,9 @@
     border: none;
     border-radius: 6px;
     cursor: pointer;
+    text-transform: none !important;
+    font-weight: normal !important;
+    font-size: 14px;
   }
   .dt-reset-btn:hover {
     background-color: #334155;
@@ -269,8 +272,8 @@
   <div id="dt-question" class="dt-question"></div>
   <div id="dt-options" class="dt-options"></div>
   <div id="dt-result" class="dt-result" style="display: none;">
-    <h4 style="margin-top: 0; color: #166534;">Registration Outcome</h4>
-    <div class="dt-result-item"><strong>Financial Class:</strong> <span id="res-financial"></span></div>
+    <h4 style="margin-top: 0; color: #166534; font-size: 18px; font-family: inherit;">Registration Outcome</h4>
+    <div class="dt-result-item">Financial Class: <strong><span id="res-financial"></span></strong></div>
     <div class="dt-tip-box">
       <strong>Tip / Instructions:</strong> <span id="res-tip"></span>
     </div>
