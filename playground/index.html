@@ -11,9 +11,9 @@
   <meta charset="utf-8">
 
   
-  <title> - Bowen Feng</title>
+  <title>Patient Registration Decision Tree - Bowen Feng</title>
   
-  <link rel="canonical" href="https://bowenfeng.com/valentine/">
+  <link rel="canonical" href="https://bowenfeng.com/playground/">
   
   <meta name="description" content="">
   
@@ -24,21 +24,21 @@
   
   <meta property="og:site_name" content="Bowen Feng" />
   <meta property="og:type" content="article" />
-  <meta property="og:title" content=" - Bowen Feng" />
+  <meta property="og:title" content="Patient Registration Decision Tree - Bowen Feng" />
   
   <meta property="og:description" content="">
   
-  <meta property="og:url" content="https://bowenfeng.com/valentine/" />
+  <meta property="og:url" content="https://bowenfeng.com/playground/" />
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content=" - Bowen Feng">
+  <meta name="twitter:title" content="Patient Registration Decision Tree - Bowen Feng">
   
   <meta name="twitter:description" content="">
   
   
   
   
-  <meta name="twitter:url" content="https://bowenfeng.com/valentine/" />
+  <meta name="twitter:url" content="https://bowenfeng.com/playground/" />
 
   <!-- Mobile Specific Metas
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
@@ -195,68 +195,286 @@
 </div>
 
         <div class="trans">
-            <h1></h1>
+            <h1>Patient Registration Decision Tree</h1>
 
-  <div id="valentine-container" style="text-align: center; font-family: sans-serif; padding: 20px;">
-    <div id="content-wrapper">
-        <img id="main-gif" src="valentine.gif" alt="Valentine GIF" style="width: 100%; max-width: 300px; border-radius: 15px; margin-bottom: 20px;">
-        <h2 id="question" style="margin-bottom: 20px;">Victoria, will you be my valentine? 🌹</h2>
-        <div id="buttons-container" style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; text-align: center">
-            <button id="yesBtn" style="background-color: #ff4d6d; padding-left:30px; padding-right: 30px; height: 50px; color: white; border: none; cursor: pointer; transition: 0.3s; text-transform: none;">
-                Yes
-            </button>
-            <button id="noBtn" style="background-color: #6c757d; padding-left:30px; padding-right: 30px; height: 50px; color: white; border: none; cursor: pointer; text-transform: none;">
-                No
-            </button>
-        </div>
+  <style>
+  .dt-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 680px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    font-family: 'DM Serif Display', serif;
+  }
+  .dt-question {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .dt-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .dt-btn {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    text-transform: none !important;
+    font-weight: normal !important;
+  }
+  .dt-btn:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+  }
+  .dt-result {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+  .dt-result-item {
+    margin: 8px 0;
+    font-size: 18px;
+  }
+  .dt-tip-box {
+    margin-top: 12px;
+    background-color: #fefce8;
+    border: 1px solid #fef08a;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #713f12;
+    font-size: 12px;
+  }
+  .dt-reset-btn {
+    margin-top: 16px;
+    background-color: #0f172a;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .dt-reset-btn:hover {
+    background-color: #334155;
+  }
+</style>
+
+<div class="dt-card">
+  <div id="dt-question" class="dt-question"></div>
+  <div id="dt-options" class="dt-options"></div>
+  <div id="dt-result" class="dt-result" style="display: none;">
+    <h4 style="margin-top: 0; color: #166534;">Registration Outcome</h4>
+    <div class="dt-result-item"><strong>Financial Class:</strong> <span id="res-financial"></span></div>
+    <div class="dt-tip-box">
+      <strong>Tip / Instructions:</strong> <span id="res-tip"></span>
     </div>
+    <button class="dt-reset-btn" onclick="resetTree()">Start Over</button>
+  </div>
 </div>
 
 <script>
-    const noBtn = document.getElementById('noBtn');
-    const yesBtn = document.getElementById('yesBtn');
-    const question = document.getElementById('question');
-    const mainGif = document.getElementById('main-gif');
-    const container = document.getElementById('content-wrapper');
+  const decisionTree = {
+    startNode: "q_ohc",
+    nodes: {
+      // 1. OHC Check
+      q_ohc: {
+        question: "Does the patient have an Ontario Health Card?",
+        options: [
+          { text: "Yes", nextNode: "q_ohc_validation" },
+          { text: "No", nextNode: "q_reside_ontario" }
+        ]
+      },
 
-    const messages = [
-        "Are you sure?",
-        "Are you sure sure?",
-        "Are you sure you are sure sure?",
-        "Please",
-        "Pleeeeeease",
-        "Please just say yes",
-        "You better say yes",
-        "Say yes please",
-        "Say yes pleeeeeeeeeease",
-        "Seriously say yes"
-    ];
+      // Branch: Yes to OHC
+      q_ohc_validation: {
+        question: "Select the patient's Ontario Health Card validation status:",
+        options: [
+          {
+            text: "Yes, and validation succeeds",
+            result: { financialClass: "OHCN", tip: "Placeholder" }
+          },
+          {
+            text: "Yes, but validation fails",
+            result: { financialClass: "OHCN", tip: "Placeholder" }
+          },
+          {
+            text: "Yes, but patient forgot their health card at home",
+            result: { financialClass: "OHCN but coverage unconfirmed", tip: "Placeholder" }
+          }
+        ]
+      },
 
-    let messageIndex = 0;
+      // 2. Reside in Ontario Check
+      q_reside_ontario: {
+        question: "Do the patient and parent(s)/guardian(s) permanently reside in Ontario?",
+        options: [
+          { text: "Yes", nextNode: "q_ifhp" },
+          { text: "No", nextNode: "q_reside_other_province" }
+        ]
+      },
 
-    noBtn.addEventListener('click', () => {
-        if (messageIndex < messages.length) {
-        	noBtn.innerHTML = messages[messageIndex];
-        	messageIndex++;
-        	const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize);
-        	yesBtn.style.fontSize = (currentSize * 1.2) + 'px';
-        	yesBtn.style.height = (parseFloat(window.getComputedStyle(yesBtn).height) * 1.2) + 'px';
-        	yesBtn.style.padding = (parseFloat(window.getComputedStyle(yesBtn).paddingTop) * 1.2) + 'px ' + (parseFloat(window.getComputedStyle(yesBtn).paddingLeft) * 1.2) + 'px';
-        } else {
-        	const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize);
-        	yesBtn.style.fontSize = (currentSize * 1.01) + 'px';
-        	yesBtn.style.height = (parseFloat(window.getComputedStyle(yesBtn).height) * 1.01) + 'px';
-        	yesBtn.style.padding = (parseFloat(window.getComputedStyle(yesBtn).paddingTop) * 1.01) + 'px ' + (parseFloat(window.getComputedStyle(yesBtn).paddingLeft) * 1.01) + 'px';
-        }
+      // --- BRANCH: Reside in Ontario (Yes) ---
+      q_ifhp: {
+        question: "Does the patient have insurance coverage through the Interim Federal Health Program (IFHP)?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "Refugee Health Plan", tip: "Placeholder" }
+          },
+          { text: "No", nextNode: "q_uhip" }
+        ]
+      },
+      q_uhip: {
+        question: "Does the patient (not just their parent(s)/guardian(s)) have University Health Insurance (UHIP)?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "UHIP", tip: "Placeholder" }
+          },
+          { text: "No", nextNode: "q_ont_private_ins" }
+        ]
+      },
+      q_ont_private_ins: {
+        question: "Does the patient have private insurance?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "SK IPP Insurance CAD", tip: "Placeholder" }
+          },
+          { text: "No", nextNode: "q_ont_visitor" }
+        ]
+      },
+      q_ont_visitor: {
+        question: "Is the patient in Canada on a visitor visa?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Placeholder" }
+          },
+          { text: "No", nextNode: "q_ont_parents_status" }
+        ]
+      },
+      q_ont_parents_status: {
+        question: "Do both of the patient's parent(s)/guardian(s) have either Canadian citizenship or permanent residency?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "Ontario Uninsured", tip: "Placeholder" }
+          },
+          {
+            text: "No",
+            result: { financialClass: "Contact supervisor", tip: "Placeholder" }
+          }
+        ]
+      },
+
+      // --- BRANCH: Reside in Ontario (No) ---
+      q_reside_other_province: {
+        question: "Does the patient permanently reside in another province of Canada?",
+        options: [
+          { text: "Yes", nextNode: "q_valid_provincial_card" },
+          { text: "No", nextNode: "q_non_ont_private_ins" }
+        ]
+      },
+
+      // Branch: Reside in another Canadian province (Yes)
+      q_valid_provincial_card: {
+        question: "Does the patient have a valid provincial health card?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "Out of Province (OOP) Insured", tip: "Placeholder" }
+          },
+          {
+            text: "No",
+            result: { financialClass: "Out of Province (OOP) Uninsured", tip: "Placeholder" }
+          }
+        ]
+      },
+
+      // Branch: Reside in another Canadian province (No)
+      q_non_ont_private_ins: {
+        question: "Does the patient have private insurance?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "SK IPP Insurance CAD", tip: "Placeholder" }
+          },
+          { text: "No", nextNode: "q_non_ont_visitor" }
+        ]
+      },
+      q_non_ont_visitor: {
+        question: "Is the patient in Canada on a visitor visa?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Placeholder" }
+          },
+          {
+            text: "No",
+            result: { financialClass: "Contact supervisor", tip: "Placeholder" }
+          }
+        ]
+      }
+    }
+  };
+
+  let currentNodeId = decisionTree.startNode;
+
+  function renderNode(nodeId) {
+    const node = decisionTree.nodes[nodeId];
+    const qElem = document.getElementById("dt-question");
+    const optElem = document.getElementById("dt-options");
+    const resElem = document.getElementById("dt-result");
+
+    resElem.style.display = "none";
+    qElem.style.display = "block";
+    optElem.style.display = "flex";
+
+    qElem.innerText = node.question;
+    optElem.innerHTML = "";
+
+    node.options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "dt-btn";
+      btn.innerText = opt.text;
+      btn.onclick = () => handleChoice(opt);
+      optElem.appendChild(btn);
     });
+  }
 
-    yesBtn.addEventListener('click', () => {
-        // Replace everything with the success state
-        container.innerHTML = `
-            <img src="yay.gif" alt="Success GIF" style="width: 100%; max-width: 300px; border-radius: 15px; margin-top: 20px;">
-            <h2 style="">Yay! ❤️</h2>
-        `;
-    });
+  function handleChoice(option) {
+    if (option.result) {
+      showResult(option.result);
+    } else if (option.nextNode) {
+      currentNodeId = option.nextNode;
+      renderNode(currentNodeId);
+    }
+  }
+
+  function showResult(result) {
+    document.getElementById("dt-question").style.display = "none";
+    document.getElementById("dt-options").style.display = "none";
+    
+    document.getElementById("res-financial").innerText = result.financialClass;
+    document.getElementById("res-tip").innerText = result.tip;
+    document.getElementById("dt-result").style.display = "block";
+  }
+
+  function resetTree() {
+    currentNodeId = decisionTree.startNode;
+    renderNode(currentNodeId);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    renderNode(decisionTree.startNode);
+  });
 </script>
 
         </div>
