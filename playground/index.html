@@ -197,7 +197,7 @@
         <div class="trans">
             <h1>Playground</h1>
 
-  <h2 id="Patient-Registration-Decision-Tree"><a href="#Patient-Registration-Decision-Tree" class="headerlink" title="Patient Registration Decision Tree"></a>Patient Registration Decision Tree</h2>
+  <h2 id="Patient-Registration-Decision-Tree-Multiple-Choice"><a href="#Patient-Registration-Decision-Tree-Multiple-Choice" class="headerlink" title="Patient Registration Decision Tree (Multiple Choice)"></a>Patient Registration Decision Tree (Multiple Choice)</h2>
 <style>
   .dt-container {
     max-width: 780px;
@@ -423,7 +423,7 @@
 
       // OUTCOMES
       res_ohcn_valid: {
-        financialClass: "OHCN",
+        financialClass: "OHCN (Ontario Health Card Number)",
         primaryPayer: "OHCN (Ontario Health Card Number)",
         paymentRequired: "No",
         tip: "Valid response codes: 50, 51, 52, 53, 54, 55.",
@@ -433,8 +433,8 @@
       },
 
       res_ohcn_failed: {
-        financialClass: "OHCN",
-        primaryPayer: "OHCN (Ontario Health Card Number)",
+        financialClass: "SK IPP Self-Pay CAD",
+        primaryPayer: "SK IPP Self-Pay CAD",
         paymentRequired: "Yes",
         tip: "Invalid response codes: 0-49 (excluding code 15 - Newborn) or 60-89.",
         documents: ["Ontario Health Card"],
@@ -520,7 +520,7 @@
       },
 
       res_ontario_uninsured: {
-        financialClass: "SK Ontario Uninsured",
+        financialClass: "SK Ontario Uninsured Self-Pay",
         primaryPayer: "SK Ontario Uninsured Self-Pay",
         paymentRequired: "Yes",
         tip: "Children of Canadian citizens and permanent residents are eligible for provincial health coverage, but enrollment is not automatic. Parents/guardians must apply for the child's health card.",
@@ -696,6 +696,242 @@
 })();
 </script>
 
+
+<h2 id="Patient-Registration-Decision-Tree-Yes-or-No"><a href="#Patient-Registration-Decision-Tree-Yes-or-No" class="headerlink" title="Patient Registration Decision Tree (Yes or No)"></a>Patient Registration Decision Tree (Yes or No)</h2><style>
+  .dt-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 680px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    font-family: sans-serif;
+  }
+  .dt-question {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .dt-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .dt-btn {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    text-transform: none !important;
+    font-weight: normal !important;
+  }
+  .dt-btn:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+  }
+  .dt-result {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+  .dt-result-item {
+    margin: 8px 0;
+    font-size: 18px;
+  }
+  .dt-tip-box {
+    margin-top: 12px;
+    background-color: #fefce8;
+    border: 1px solid #fef08a;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #713f12;
+    font-size: 14px;
+  }
+  .dt-reset-btn {
+    margin-top: 16px;
+    background-color: #0f172a;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: none !important;
+    font-weight: normal !important;
+    font-size: 14px;
+  }
+  .dt-reset-btn:hover {
+    background-color: #334155;
+  }
+</style>
+
+<div class="dt-card">
+  <div id="dt-question" class="dt-question"></div>
+  <div id="dt-options" class="dt-options"></div>
+  <div id="dt-result" class="dt-result" style="display: none;">
+    <h4 style="margin-top: 0; color: #166534; font-size: 18px; font-family: inherit;">Registration Outcome</h4>
+    <div class="dt-result-item">Financial Class: <strong><span id="res-financial"></span></strong></div>
+    <div class="dt-tip-box">
+      <strong>Tip / Instructions:</strong> <span id="res-tip"></span>
+    </div>
+    <button class="dt-reset-btn" onclick="resetTree()">Start Over</button>
+  </div>
+</div>
+
+<script>
+  const decisionTree = {
+    startNode: "q_ohc",
+    nodes: {
+      // Step 1: Ontario Health Card
+      q_ohc: {
+        question: "Does the patient have an Ontario Health Card?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "OHCN", tip: "Acquire proof and/or validate" }
+          },
+          { text: "No", nextNode: "q_live_ontario" }
+        ]
+      },
+
+      // Step 2: Live in Ontario?
+      q_live_ontario: {
+        question: "Does the patient live in Ontario?",
+        options: [
+          { text: "Yes", nextNode: "q_parents_pr_cit" },
+          { text: "No", nextNode: "q_live_other_province" }
+        ]
+      },
+
+      // --- BRANCH: Lives in Ontario (Yes) ---
+      q_parents_pr_cit: {
+        question: "Do BOTH parents/guardians have Canadian citizenship or PR?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "Ontario Uninsured", tip: "Acquire proof and/or validate" }
+          },
+          { text: "No", nextNode: "q_insurance_type_ont" }
+        ]
+      },
+
+      q_insurance_type_ont: {
+        question: "Does the patient have private insurance/UHIP/IFHP?",
+        options: [
+          {
+            text: "University Health Insurance Plan (UHIP)",
+            result: { financialClass: "UHIP", tip: "Acquire proof and/or validate" }
+          },
+          {
+            text: "Interim Federal Health Plan (IFHP)",
+            result: { financialClass: "Refugee Health Plan", tip: "Acquire proof and/or validate" }
+          },
+          {
+            text: "Private Insurance",
+            result: { financialClass: "SK IPP Insurance CAD", tip: "Acquire proof and/or validate" }
+          },
+          {
+            text: "No Insurance / None of the above",
+            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Acquire proof and/or validate" }
+          }
+        ]
+      },
+
+      // --- BRANCH: Lives in Ontario (No) ---
+      q_live_other_province: {
+        question: "Does the patient live in another province in Canada?",
+        options: [
+          { text: "Yes", nextNode: "q_other_prov_card" },
+          { text: "No", nextNode: "q_non_cdn_insurance" }
+        ]
+      },
+
+      // Sub-branch: Lives in another province (Yes)
+      q_other_prov_card: {
+        question: "Does the patient have a Health Card from another province?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "Out of Province (OOP) Insured", tip: "Acquire proof and/or validate" }
+          },
+          {
+            text: "No",
+            result: { financialClass: "Out of Province (OOP) Uninsured", tip: "Acquire proof and/or validate" }
+          }
+        ]
+      },
+
+      // Sub-branch: Lives in another province (No / Non-Canadian Resident)
+      q_non_cdn_insurance: {
+        question: "Does the patient have private insurance?",
+        options: [
+          {
+            text: "Yes",
+            result: { financialClass: "SK IPP Insurance CAD", tip: "Acquire proof and/or validate" }
+          },
+          {
+            text: "No",
+            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Acquire proof and/or validate" }
+          }
+        ]
+      }
+    }
+  };
+
+  let currentNodeId = decisionTree.startNode;
+
+  function renderNode(nodeId) {
+    const node = decisionTree.nodes[nodeId];
+    const qElem = document.getElementById("dt-question");
+    const optElem = document.getElementById("dt-options");
+    const resElem = document.getElementById("dt-result");
+
+    resElem.style.display = "none";
+    qElem.style.display = "block";
+    optElem.style.display = "flex";
+
+    qElem.innerText = node.question;
+    optElem.innerHTML = "";
+
+    node.options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "dt-btn";
+      btn.innerText = opt.text;
+      btn.onclick = () => handleChoice(opt);
+      optElem.appendChild(btn);
+    });
+  }
+
+  function handleChoice(option) {
+    if (option.result) {
+      showResult(option.result);
+    } else if (option.nextNode) {
+      currentNodeId = option.nextNode;
+      renderNode(currentNodeId);
+    }
+  }
+
+  function showResult(result) {
+    document.getElementById("dt-question").style.display = "none";
+    document.getElementById("dt-options").style.display = "none";
+    
+    document.getElementById("res-financial").innerText = result.financialClass;
+    document.getElementById("res-tip").innerText = result.tip;
+    document.getElementById("dt-result").style.display = "block";
+  }
+
+  function resetTree() {
+    currentNodeId = decisionTree.startNode;
+    renderNode(currentNodeId);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    renderNode(decisionTree.startNode);
+  });
+</script>
 
 <h2 id="Financial-Class-Definitions"><a href="#Financial-Class-Definitions" class="headerlink" title="Financial Class Definitions"></a>Financial Class Definitions</h2><ul>
 <li><strong>OHCN:</strong> Valid or present Ontario Health Insurance Plan (OHIP) cardholders; funded by the Ontario provincial government.</li>
