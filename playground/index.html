@@ -11,7 +11,7 @@
   <meta charset="utf-8">
 
   
-  <title>Playground - Bowen Feng</title>
+  <title>Patient Registration Decision Tree - Bowen Feng</title>
   
   <link rel="canonical" href="https://bowenfeng.com/playground/">
   
@@ -24,14 +24,14 @@
   
   <meta property="og:site_name" content="Bowen Feng" />
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Playground - Bowen Feng" />
+  <meta property="og:title" content="Patient Registration Decision Tree - Bowen Feng" />
   
   <meta property="og:description" content="">
   
   <meta property="og:url" content="https://bowenfeng.com/playground/" />
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Playground - Bowen Feng">
+  <meta name="twitter:title" content="Patient Registration Decision Tree - Bowen Feng">
   
   <meta name="twitter:description" content="">
   
@@ -195,9 +195,9 @@
 </div>
 
         <div class="trans">
-            <h1>Playground</h1>
+            <h1>Patient Registration Decision Tree</h1>
 
-  <h2 id="Patient-Registration-Decision-Tree-Multiple-Choice"><a href="#Patient-Registration-Decision-Tree-Multiple-Choice" class="headerlink" title="Patient Registration Decision Tree (Multiple Choice)"></a>Patient Registration Decision Tree (Multiple Choice)</h2>
+  
 <style>
   .dt-container {
     max-width: 780px;
@@ -363,15 +363,92 @@
   }
 </style>
 
+<!-- SECTION 1: MULTIPLE CHOICE -->
+<h2>1. Registration Decision Tree (Multiple Choice)</h2>
 <div class="dt-container">
-  <div id="decision-tree-app" class="dt-card">
-    <!-- Content rendered via JavaScript -->
+  <div id="dt-mc-app" class="dt-card">
+    <!-- Rendered via JavaScript -->
+  </div>
+</div>
+
+<!-- SECTION 2: YES OR NO -->
+<h2>2. Registration Decision Tree (Yes / No)</h2>
+<div class="dt-container">
+  <div id="dt-yn-app" class="dt-card">
+    <!-- Rendered via JavaScript -->
   </div>
 </div>
 
 <script>
 (function() {
-  const treeData = {
+  // Shared Helper to render rich Result HTML
+  function renderResultHTML(result, resetFnName) {
+    const isPaymentYes = (result.paymentRequired || "").toLowerCase().startsWith("yes");
+    const alertClass = isPaymentYes ? "dt-alert-yes" : "dt-alert-no";
+    const alertIcon = isPaymentYes ? "⚠️" : "✅";
+
+    let docsHtml = "";
+    if (result.documents && result.documents.length > 0) {
+      docsHtml += `<strong>Required Documents:</strong><ul>${result.documents.map(d => `<li>${d}</li>`).join("")}</ul>`;
+    }
+    if (result.forms && result.forms.length > 0) {
+      if (docsHtml) docsHtml += "<div style='margin-top:6px;'></div>";
+      docsHtml += `<strong>Provide Forms:</strong><ul>${result.forms.map(f => `<li>${f}</li>`).join("")}</ul>`;
+    }
+    if (!docsHtml) docsHtml = "<em>None required</em>";
+
+    let nextStepsHtml = (result.nextSteps || []).map(s => `<li>${s}</li>`).join("");
+
+    let boHtml = result.showBusinessOffice ? `
+      <div class="dt-business-office">
+        <strong>📍 Business Office Note:</strong> Located in Room M410 (Main Hospital, between Shoppers Drug Mart & Tim Hortons). Hours: Mon–Fri 9 AM–4 PM | Phone: 416-813-7047.
+      </div>
+    ` : "";
+
+    return `
+      <div class="dt-result-grid">
+        <div class="dt-badge-card">
+          <div class="dt-badge-title">Financial Class</div>
+          <div class="dt-badge-value">${result.financialClass || 'N/A'}</div>
+        </div>
+        <div class="dt-badge-card" style="border-left-color: #059669;">
+          <div class="dt-badge-title">Primary Payer</div>
+          <div class="dt-badge-value">${result.primaryPayer || 'N/A'}</div>
+        </div>
+      </div>
+
+      <div class="dt-alert ${alertClass}">
+        <span>${alertIcon}</span>
+        <span><strong>Patient Payment Required?</strong> ${result.paymentRequired || 'No'}</span>
+      </div>
+
+      <div class="dt-section">
+        <div class="dt-section-title">💡 Tip & Context</div>
+        <div class="dt-section-content">${result.tip || 'N/A'}</div>
+      </div>
+
+      <div class="dt-section">
+        <div class="dt-section-title">📄 Required Documents & Forms</div>
+        <div class="dt-section-content">${docsHtml}</div>
+      </div>
+
+      <div class="dt-section">
+        <div class="dt-section-title">📋 Staff / Patient Next Steps</div>
+        <div class="dt-section-content">
+          <ul>${nextStepsHtml}</ul>
+        </div>
+      </div>
+
+      ${boHtml}
+
+      <button class="dt-restart-btn" onclick="${resetFnName}()">🔄 Start Over</button>
+    `;
+  }
+
+  // ==========================================
+  // 1. MULTIPLE CHOICE DECISION TREE
+  // ==========================================
+  const mcTreeData = {
     startNode: "q_ohc",
     nodes: {
       q_ohc: {
@@ -383,7 +460,6 @@
           { text: "No", nextNode: "q_residency" }
         ]
       },
-
       q_residency: {
         question: "2. Where does the patient permanently reside?",
         options: [
@@ -392,7 +468,6 @@
           { text: "Outside Canada (International / Visitor)", nextNode: "q_intl_insurance" }
         ]
       },
-
       q_ontario_status: {
         question: "2. What is the patient's coverage status in Ontario?",
         options: [
@@ -404,7 +479,6 @@
           { text: "None of the above (Uninsured / Self-Pay)", nextNode: "res_visitor" }
         ]
       },
-
       q_oop_card: {
         question: "3. Does the patient have a valid health card from their home province/territory?",
         options: [
@@ -412,7 +486,6 @@
           { text: "No (Does not hold active provincial card)", nextNode: "res_oop_uninsured" }
         ]
       },
-
       q_intl_insurance: {
         question: "Does the international patient have valid private commercial or travel insurance?",
         options: [
@@ -431,7 +504,6 @@
         forms: [],
         nextSteps: ["Validate health card in Epic and proceed with registration."]
       },
-
       res_ohcn_failed: {
         financialClass: "SK IPP Self-Pay CAD",
         primaryPayer: "SK IPP Self-Pay CAD",
@@ -441,125 +513,89 @@
         forms: [],
         nextSteps: [
           "Send family to Business Office for payment. Additional charges may be billed later.",
-          "The patient/family will be refunded if OHIP coverage is renewed retroactively. Patient/family should contact Business Office with proof of retroactive coverage in order to initiate a refund."
+          "The patient/family will be refunded if OHIP coverage is renewed retroactively."
         ],
         showBusinessOffice: true
       },
-
       res_ohcn_forgotten: {
-        financialClass: "OHCN",
+        financialClass: "OHCN (Ontario Health Card Number)",
         primaryPayer: "Coverage Unconfirmed",
         paymentRequired: "No",
-        tip: "Review the patient's prior visits in Epic to determine whether valid OHIP coverage exists on their account. If active and valid OHIP coverage exists, copy the coverage from a prior visit into the current encounter. Use the OHIP Validation Tool to complete real-time validation for current date of service. Note: Coverage Unconfirmed is not a default option.",
+        tip: "Review prior visits in Epic to determine if valid OHIP exists. If active, copy coverage into encounter. Note: Coverage Unconfirmed is not a default option.",
         documents: [],
         forms: ["SK Forgotten Letter"],
         nextSteps: [
           "Provide patient/family with SK Forgotten letter.",
-          "Family has 5 business days to contact the phone number/email listed on the letter to provide valid OHIP details, or they will be billed directly for their visit."
+          "Family has 5 business days to contact hospital with valid OHIP or face direct billing."
         ]
       },
-
       res_ifhp: {
         financialClass: "Refugee Health Plan",
         primaryPayer: "Refugee Health Plan",
         paymentRequired: "No",
-        tip: "IFHP provides limited, temporary health coverage to refugees and asylum claimants not yet eligible for provincial health insurance. Parent coverage does NOT automatically extend to the child; every individual (including newborns and minor children) must have their own eligibility document.",
-        documents: [
-          "Refugee Protection Claimant Document (RPCD)",
-          "Acknowledgement of Claim and Notice to Return for Interview Letter (AoC)",
-          "Refugee Protection Identity Document (RPID)",
-          "Interim Federal Health Certificate (IFHC)"
-        ],
+        tip: "IFHP provides limited, temporary health coverage to refugees and asylum claimants not yet eligible for provincial insurance. Parent coverage does NOT extend to child.",
+        documents: ["Refugee Protection Claimant Document (RPCD)", "Acknowledgement of Claim (AoC)", "Refugee Protection Identity Document (RPID)", "Interim Federal Health Certificate (IFHC)"],
         forms: [],
-        nextSteps: [
-          "Review eligible document and input details into Epic.",
-          "Enter UCI number as Member ID and verify coverage dates."
-        ]
+        nextSteps: ["Review eligible document and input details into Epic.", "Enter UCI number as Member ID and verify coverage dates."]
       },
-
       res_uhip: {
         financialClass: "UHIP",
         primaryPayer: "UHIP",
         paymentRequired: "No",
-        tip: "UHIP is a basic, mandatory primary healthcare plan for international non-resident students in Ontario. Parent coverage does NOT automatically extend to the child; the parent must apply and pay an additional premium to add the child.",
+        tip: "UHIP is a mandatory healthcare plan for international non-resident students in Ontario. Parent coverage does NOT automatically extend to the child.",
         documents: ["UHIP / Cowan card (primary)"],
         forms: ["Governing Law & Jurisdiction form"],
-        nextSteps: [
-          "Review eligible documents and input details into Epic.",
-          "Provide patient with Governing Law & Jurisdiction form."
-        ]
+        nextSteps: ["Review eligible documents and input details into Epic.", "Provide patient with Governing Law & Jurisdiction form."]
       },
-
       res_ontario_private: {
         financialClass: "SK IPP Insurance CAD",
         primaryPayer: "SK IPP Insurance CAD",
         paymentRequired: "No (Check billing indicator)",
-        tip: "A parent's status (citizenship/PR) does not automatically qualify their child for public health coverage. Having a Canadian work permit does not automatically enroll an individual or child in public health coverage.",
+        tip: "A parent's status (citizenship/PR) does not automatically qualify their child for public health coverage. Having a work permit does not auto-enroll children.",
         documents: ["Proof of insurance (e.g., benefit card)"],
         forms: ["Epic coversheet"],
-        nextSteps: [
-          "Print Epic coversheet from Epic and provide to patient family.",
-          "Check billing indicator in Epic to see if the family is required to pay. If required, direct family to the Business Office with coversheet to make payment.",
-          "Contact the International Patient Portfolio (IPP) with patient name and MRN."
-        ],
+        nextSteps: ["Print Epic coversheet from Epic and provide to family.", "Check billing indicator in Epic.", "Contact IPP with patient name and MRN."],
         showBusinessOffice: true
       },
-
       res_visitor: {
         financialClass: "SK IPP Self-Pay CAD",
         primaryPayer: "SK IPP Self-Pay CAD",
         paymentRequired: "Yes",
-        tip: "Having a visitor visa in Canada does not automatically provide public health insurance. All visitors must pay for hospital care through private insurance or out of pocket.",
+        tip: "Having a visitor visa in Canada does not provide public health insurance. Visitors must pay out of pocket or via private insurance.",
         documents: [],
         forms: ["Epic coversheet", "Financial Responsibility Letter"],
-        nextSteps: [
-          "Contact the International Patient Portfolio (IPP) with patient name and MRN.",
-          "Send family to Business Office for payment. Additional charges may be billed later."
-        ],
+        nextSteps: ["Contact International Patient Portfolio (IPP) with patient name and MRN.", "Send family to Business Office for payment."],
         showBusinessOffice: true
       },
-
       res_ontario_uninsured: {
         financialClass: "SK Ontario Uninsured Self-Pay",
         primaryPayer: "SK Ontario Uninsured Self-Pay",
         paymentRequired: "Yes",
-        tip: "Children of Canadian citizens and permanent residents are eligible for provincial health coverage, but enrollment is not automatic. Parents/guardians must apply for the child's health card.",
-        documents: ["Proof of Canadian citizenship or permanent residency (passport, citizenship certificate, PR card, e-COPR)"],
+        tip: "Children of Canadian citizens/PRs are eligible for provincial health coverage, but enrollment is not automatic. Parents must apply.",
+        documents: ["Proof of Canadian citizenship or PR (passport, citizenship certificate, PR card, e-COPR)"],
         forms: ["Epic coversheet"],
-        nextSteps: [
-          "Print Epic coversheet from Epic and provide to patient family.",
-          "Send family to Business Office for payment. Additional charges may be billed later."
-        ],
+        nextSteps: ["Print Epic coversheet and provide to family.", "Send family to Business Office for payment."],
         showBusinessOffice: true
       },
-
       res_oop_insured: {
-        financialClass: "OOP",
+        financialClass: "SK Out of Province (OOP) Insured",
         primaryPayer: "Home Province Health Plan (Reciprocal Billing)",
         paymentRequired: "No",
-        tip: "Thanks to interprovincial reciprocal agreements, standard hospital/physician services are billed directly to the home province/territory (Alberta, BC, MB, NL, NWT, NS, NU, PEI, SK, QC, YT) without upfront payment.",
+        tip: "Standard hospital/physician services are billed directly to home province/territory via interprovincial reciprocal agreements.",
         documents: ["Provincial / Territorial Health Card"],
         forms: ["Declaration of Inpatient Hospital Insurance Coverage Form (if admitted)"],
-        nextSteps: [
-          "Review eligible document and input details into Epic.",
-          "Verify provincial card appears on Interprovincial Card list.",
-          "If admitted, patient/family must complete Declaration of Inpatient Hospital Insurance Coverage Form and send to patient.accounts@sickkids.ca."
-        ]
+        nextSteps: ["Review document and input details into Epic.", "Verify card on Interprovincial Card list."]
       },
-
       res_oop_uninsured: {
-        financialClass: "SK OOP Uninsured Self-Pay",
-        primaryPayer: "SK OOP Uninsured Self-Pay",
+        financialClass: "SK Out of Province (OOP) Uninsured Self-Pay",
+        primaryPayer: "SK Out of Province (OOP) Uninsured Self-Pay",
         paymentRequired: "Yes",
         tip: "Reciprocal interprovincial billing cannot be processed without an active provincial/territorial health card.",
         documents: [],
         forms: [],
-        nextSteps: [
-          "Send family to Business Office for payment. Additional charges may be billed later."
-        ],
+        nextSteps: ["Send family to Business Office for payment."],
         showBusinessOffice: true
       },
-
       res_intl_insurance: {
         financialClass: "SK IPP Insurance CAD",
         primaryPayer: "SK IPP Insurance CAD",
@@ -567,14 +603,9 @@
         tip: "Managed through the International Patient Portfolio (IPP). Direct billing to commercial/travel insurance.",
         documents: ["Proof of insurance (e.g., benefit card)"],
         forms: ["Epic coversheet"],
-        nextSteps: [
-          "Print Epic coversheet from Epic and provide to patient family.",
-          "Check billing indicator in Epic. Direct family to Business Office if payment is required.",
-          "Contact IPP with patient name and MRN."
-        ],
+        nextSteps: ["Print Epic coversheet and provide to family.", "Contact IPP with patient name and MRN."],
         showBusinessOffice: true
       },
-
       res_intl_selfpay: {
         financialClass: "SK IPP Self-Pay CAD",
         primaryPayer: "SK IPP Self-Pay CAD",
@@ -582,222 +613,96 @@
         tip: "International non-resident patient paying out-of-pocket in Canadian Dollars.",
         documents: [],
         forms: ["Epic coversheet", "Financial Responsibility Letter"],
-        nextSteps: [
-          "Contact IPP with patient name and MRN.",
-          "Send family to Business Office for payment. Additional charges may be billed later."
-        ],
+        nextSteps: ["Contact IPP with patient name and MRN.", "Send family to Business Office for payment."],
         showBusinessOffice: true
       }
     }
   };
 
-  let currentState = treeData.startNode;
+  let mcState = mcTreeData.startNode;
 
-  function render() {
-    const app = document.getElementById("decision-tree-app");
-    const item = treeData.nodes[currentState];
-
+  function renderMC() {
+    const app = document.getElementById("dt-mc-app");
+    const item = mcTreeData.nodes[mcState];
     if (!item) return;
 
-    // Check if node is Question or Result
     if (item.question) {
-      let optionsHtml = item.options.map((opt, idx) => `
-        <button class="dt-btn" onclick="window.dtSelectOption('${opt.nextNode}')">
-          ${opt.text}
-        </button>
+      let optionsHtml = item.options.map(opt => `
+        <button class="dt-btn" onclick="window.dtMCSelect('${opt.nextNode}')">${opt.text}</button>
       `).join("");
-
-      app.innerHTML = `
-        <h3 class="dt-header">${item.question}</h3>
-        <div class="dt-btn-group">
-          ${optionsHtml}
-        </div>
-      `;
+      app.innerHTML = `<h3 class="dt-header">${item.question}</h3><div class="dt-btn-group">${optionsHtml}</div>`;
     } else {
-      // Render Result Card
-      const isPaymentYes = item.paymentRequired.toLowerCase().startsWith("yes");
-      const alertClass = isPaymentYes ? "dt-alert-yes" : "dt-alert-no";
-      const alertIcon = isPaymentYes ? "⚠️" : "✅";
-
-      let docsHtml = "";
-      if (item.documents && item.documents.length > 0) {
-        docsHtml += `<strong>Required Documents:</strong><ul>${item.documents.map(d => `<li>${d}</li>`).join("")}</ul>`;
-      }
-      if (item.forms && item.forms.length > 0) {
-        if (docsHtml) docsHtml += "<div style='margin-top:6px;'></div>";
-        docsHtml += `<strong>Provide Forms:</strong><ul>${item.forms.map(f => `<li>${f}</li>`).join("")}</ul>`;
-      }
-      if (!docsHtml) docsHtml = "<em>None required</em>";
-
-      let nextStepsHtml = item.nextSteps.map(s => `<li>${s}</li>`).join("");
-
-      let boHtml = item.showBusinessOffice ? `
-        <div class="dt-business-office">
-          <strong>📍 Business Office Note:</strong> Located in Room M410 (Main Hospital, between Shoppers Drug Mart & Tim Hortons). Hours: Mon–Fri 9 AM–4 PM | Phone: 416-813-7047.
-        </div>
-      ` : "";
-
-      app.innerHTML = `
-        <div class="dt-result-grid">
-          <div class="dt-badge-card">
-            <div class="dt-badge-title">Financial Class</div>
-            <div class="dt-badge-value">${item.financialClass}</div>
-          </div>
-          <div class="dt-badge-card" style="border-left-color: #059669;">
-            <div class="dt-badge-title">Primary Payer</div>
-            <div class="dt-badge-value">${item.primaryPayer}</div>
-          </div>
-        </div>
-
-        <div class="dt-alert ${alertClass}">
-          <span>${alertIcon}</span>
-          <span><strong>Patient Payment Required?</strong> ${item.paymentRequired}</span>
-        </div>
-
-        <div class="dt-section">
-          <div class="dt-section-title">💡 Tip & Context</div>
-          <div class="dt-section-content">${item.tip}</div>
-        </div>
-
-        <div class="dt-section">
-          <div class="dt-section-title">📄 Required Documents & Forms</div>
-          <div class="dt-section-content">${docsHtml}</div>
-        </div>
-
-        <div class="dt-section">
-          <div class="dt-section-title">📋 Staff / Patient Next Steps</div>
-          <div class="dt-section-content">
-            <ul>${nextStepsHtml}</ul>
-          </div>
-        </div>
-
-        ${boHtml}
-
-        <button class="dt-restart-btn" onclick="window.dtResetTree()">🔄 Start Over</button>
-      `;
+      app.innerHTML = renderResultHTML(item, "window.dtMCReset");
     }
   }
 
-  window.dtSelectOption = function(nextNodeKey) {
-    currentState = nextNodeKey;
-    render();
-  };
-
-  window.dtResetTree = function() {
-    currentState = treeData.startNode;
-    render();
-  };
-
-  // Initial Render
-  document.addEventListener("DOMContentLoaded", render);
-  if (document.readyState === "interactive" || document.readyState === "complete") {
-    render();
-  }
-})();
-</script>
+  window.dtMCSelect = function(nodeKey) { mcState = nodeKey; renderMC(); };
+  window.dtMCReset = function() { mcState = mcTreeData.startNode; renderMC(); };
 
 
-<h2 id="Patient-Registration-Decision-Tree-Yes-or-No"><a href="#Patient-Registration-Decision-Tree-Yes-or-No" class="headerlink" title="Patient Registration Decision Tree (Yes or No)"></a>Patient Registration Decision Tree (Yes or No)</h2><style>
-  .dt-card {
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 24px;
-    max-width: 680px;
-    margin: 20px 0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    font-family: sans-serif;
-  }
-  .dt-question {
-    font-size: 18px;
-    margin-bottom: 16px;
-  }
-  .dt-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .dt-btn {
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    text-align: left;
-    cursor: pointer;
-    font-size: 14px;
-    font-family: inherit;
-    transition: all 0.2s ease;
-    text-transform: none !important;
-    font-weight: normal !important;
-  }
-  .dt-btn:hover {
-    background: #e2e8f0;
-    border-color: #94a3b8;
-  }
-  .dt-result {
-    background-color: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 6px;
-    padding: 20px;
-    margin-top: 16px;
-  }
-  .dt-result-item {
-    margin: 8px 0;
-    font-size: 18px;
-  }
-  .dt-tip-box {
-    margin-top: 12px;
-    background-color: #fefce8;
-    border: 1px solid #fef08a;
-    border-radius: 6px;
-    padding: 10px 14px;
-    color: #713f12;
-    font-size: 14px;
-  }
-  .dt-reset-btn {
-    margin-top: 16px;
-    background-color: #0f172a;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    text-transform: none !important;
-    font-weight: normal !important;
-    font-size: 14px;
-  }
-  .dt-reset-btn:hover {
-    background-color: #334155;
-  }
-</style>
-
-<div class="dt-card">
-  <div id="dt-question" class="dt-question"></div>
-  <div id="dt-options" class="dt-options"></div>
-  <div id="dt-result" class="dt-result" style="display: none;">
-    <h4 style="margin-top: 0; color: #166534; font-size: 18px; font-family: inherit;">Registration Outcome</h4>
-    <div class="dt-result-item">Financial Class: <strong><span id="res-financial"></span></strong></div>
-    <div class="dt-tip-box">
-      <strong>Tip / Instructions:</strong> <span id="res-tip"></span>
-    </div>
-    <button class="dt-reset-btn" onclick="resetTree()">Start Over</button>
-  </div>
-</div>
-
-<script>
-  const decisionTree = {
+  // ==========================================
+  // 2. YES OR NO DECISION TREE
+  // ==========================================
+  const ynTreeData = {
     startNode: "q_ohc",
     nodes: {
-      // Step 1: Ontario Health Card
       q_ohc: {
         question: "Does the patient have an Ontario Health Card?",
         options: [
-          {
-            text: "Yes",
-            result: { financialClass: "OHCN", tip: "Acquire proof and/or validate" }
-          },
+          { text: "Yes", nextNode: "q_ohc_status" },
           { text: "No", nextNode: "q_live_ontario" }
         ]
       },
-
-      // Step 2: Live in Ontario?
+      q_ohc_status: {
+        question: "Select the status of the Ontario Health Card:",
+        options: [
+          {
+            text: "Physical card presented & validation succeeds",
+            result: {
+              financialClass: "OHCN (Ontario Health Card Number)",
+              primaryPayer: "OHCN (Ontario Health Card Number)",
+              paymentRequired: "No",
+              tip: "Valid response codes: 50, 51, 52, 53, 54, 55.",
+              documents: ["Ontario Health Card"],
+              forms: [],
+              nextSteps: ["Validate health card in Epic and proceed with registration."],
+              showBusinessOffice: false
+            }
+          },
+          {
+            text: "Physical card presented & validation fails",
+            result: {
+              financialClass: "SK IPP Self-Pay CAD",
+              primaryPayer: "SK IPP Self-Pay CAD",
+              paymentRequired: "Yes",
+              tip: "Invalid response codes: 0-49 (excluding code 15 - Newborn) or 60-89.",
+              documents: ["Ontario Health Card"],
+              forms: [],
+              nextSteps: [
+                "Send family to Business Office for payment. Additional charges may be billed later.",
+                "The patient/family will be refunded if OHIP coverage is renewed retroactively. Patient/family should contact Business Office with proof of retroactive coverage in order to initiate a refund."
+              ],
+              showBusinessOffice: true
+            }
+          },
+          {
+            text: "Patient forgot card at home",
+            result: {
+              financialClass: "OHCN (Ontario Health Card Number)",
+              primaryPayer: "Coverage Unconfirmed",
+              paymentRequired: "No",
+              tip: "Review the patient's prior visits in Epic to determine whether valid OHIP coverage exists on their account. If active and valid OHIP coverage exists, copy the coverage from a prior visit into the current encounter. Use the OHIP Validation Tool to complete real-time validation for current date of service. Note: Coverage Unconfirmed is not a default option.",
+              documents: [],
+              forms: ["SK Forgotten Letter"],
+              nextSteps: [
+                "Provide patient/family with SK Forgotten letter.",
+                "Family has 5 business days to contact the phone number/email listed on the letter to provide valid OHIP details, or they will be billed directly for their visit."
+              ],
+              showBusinessOffice: false
+            }
+          }
+        ]
+      },
       q_live_ontario: {
         question: "Does the patient live in Ontario?",
         options: [
@@ -805,42 +710,85 @@
           { text: "No", nextNode: "q_live_other_province" }
         ]
       },
-
-      // --- BRANCH: Lives in Ontario (Yes) ---
       q_parents_pr_cit: {
         question: "Do BOTH parents/guardians have Canadian citizenship or PR?",
         options: [
           {
             text: "Yes",
-            result: { financialClass: "Ontario Uninsured", tip: "Acquire proof and/or validate" }
+            result: {
+              financialClass: "SK Ontario Uninsured Self-Pay",
+              primaryPayer: "SK Ontario Uninsured Self-Pay",
+              paymentRequired: "Yes",
+              tip: "Children of permanent residents and Canadian citizens are eligible for provincial health coverage, but enrollment is not automatic. Parents/guardians must apply for the child's health card.",
+              documents: ["Proof of Canadian citizenship or permanent residency (passport, citizenship certificate, PR card, e-COPR)"],
+              forms: ["Epic coversheet"],
+              nextSteps: [
+                "Print Epic coversheet from Epic and provide to patient family.",
+                "Send family to Business Office for payment. Additional charges may be billed later."
+              ],
+              showBusinessOffice: true
+            }
           },
           { text: "No", nextNode: "q_insurance_type_ont" }
         ]
       },
-
       q_insurance_type_ont: {
         question: "Does the patient have private insurance/UHIP/IFHP?",
         options: [
           {
             text: "University Health Insurance Plan (UHIP)",
-            result: { financialClass: "UHIP", tip: "Acquire proof and/or validate" }
+            result: {
+              financialClass: "UHIP",
+              primaryPayer: "UHIP",
+              paymentRequired: "No",
+              tip: "UHIP is a basic, mandatory primary healthcare plan for international non-resident students in Ontario.",
+              documents: ["UHIP / Cowan card (primary)"],
+              forms: ["Governing Law & Jurisdiction form"],
+              nextSteps: ["Review eligible documents and input details into Epic.", "Provide patient with Governing Law & Jurisdiction form."],
+              showBusinessOffice: false
+            }
           },
           {
             text: "Interim Federal Health Plan (IFHP)",
-            result: { financialClass: "Refugee Health Plan", tip: "Acquire proof and/or validate" }
+            result: {
+              financialClass: "Refugee Health Plan",
+              primaryPayer: "Refugee Health Plan",
+              paymentRequired: "No",
+              tip: "IFHP provides limited, temporary health coverage to refugees and asylum claimants not yet eligible for provincial insurance.",
+              documents: ["Refugee Protection Claimant Document (RPCD)", "Acknowledgement of Claim (AoC)", "Refugee Protection Identity Document (RPID)", "Interim Federal Health Certificate (IFHC)"],
+              forms: [],
+              nextSteps: ["Review eligible document and input details into Epic.", "Enter UCI number as Member ID and verify coverage dates."],
+              showBusinessOffice: false
+            }
           },
           {
             text: "Private Insurance",
-            result: { financialClass: "SK IPP Insurance CAD", tip: "Acquire proof and/or validate" }
+            result: {
+              financialClass: "SK IPP Insurance CAD",
+              primaryPayer: "SK IPP Insurance CAD",
+              paymentRequired: "No (Check billing indicator)",
+              tip: "A parent's status does not automatically qualify their child for public health coverage.",
+              documents: ["Proof of insurance (e.g., benefit card)"],
+              forms: ["Epic coversheet"],
+              nextSteps: ["Print Epic coversheet from Epic and provide to patient family.", "Check billing indicator in Epic.", "Contact IPP with patient name and MRN."],
+              showBusinessOffice: true
+            }
           },
           {
             text: "No Insurance / None of the above",
-            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Acquire proof and/or validate" }
+            result: {
+              financialClass: "SK IPP Self-Pay CAD",
+              primaryPayer: "SK IPP Self-Pay CAD",
+              paymentRequired: "Yes",
+              tip: "Having a visitor visa in Canada does not automatically provide public health insurance.",
+              documents: [],
+              forms: ["Epic coversheet", "Financial Responsibility Letter"],
+              nextSteps: ["Contact IPP with patient name and MRN.", "Send family to Business Office for payment."],
+              showBusinessOffice: true
+            }
           }
         ]
       },
-
-      // --- BRANCH: Lives in Ontario (No) ---
       q_live_other_province: {
         question: "Does the patient live in another province in Canada?",
         options: [
@@ -848,90 +796,113 @@
           { text: "No", nextNode: "q_non_cdn_insurance" }
         ]
       },
-
-      // Sub-branch: Lives in another province (Yes)
       q_other_prov_card: {
         question: "Does the patient have a Health Card from another province?",
         options: [
           {
             text: "Yes",
-            result: { financialClass: "Out of Province (OOP) Insured", tip: "Acquire proof and/or validate" }
+            result: {
+              financialClass: "SK Out of Province (OOP) Insured",
+              primaryPayer: "Home Province Health Plan (Reciprocal Billing)",
+              paymentRequired: "No",
+              tip: "Services billed directly to home province/territory via interprovincial reciprocal agreements.",
+              documents: ["Provincial / Territorial Health Card"],
+              forms: ["Declaration of Inpatient Hospital Insurance Coverage Form (if admitted)"],
+              nextSteps: ["Review eligible document and input details into Epic.", "Verify provincial card appears on Interprovincial Card list."],
+              showBusinessOffice: false
+            }
           },
           {
             text: "No",
-            result: { financialClass: "Out of Province (OOP) Uninsured", tip: "Acquire proof and/or validate" }
+            result: {
+              financialClass: "SK Out of Province (OOP) Uninsured Self-Pay",
+              primaryPayer: "SK Out of Province (OOP) Uninsured Self-Pay",
+              paymentRequired: "Yes",
+              tip: "Reciprocal billing cannot be processed without an active provincial health card.",
+              documents: [],
+              forms: [],
+              nextSteps: ["Send family to Business Office for payment."],
+              showBusinessOffice: true
+            }
           }
         ]
       },
-
-      // Sub-branch: Lives in another province (No / Non-Canadian Resident)
       q_non_cdn_insurance: {
         question: "Does the patient have private insurance?",
         options: [
           {
             text: "Yes",
-            result: { financialClass: "SK IPP Insurance CAD", tip: "Acquire proof and/or validate" }
+            result: {
+              financialClass: "SK IPP Insurance CAD",
+              primaryPayer: "SK IPP Insurance CAD",
+              paymentRequired: "No (Check billing indicator)",
+              tip: "Managed through the International Patient Portfolio (IPP). Direct billing to commercial/travel insurance.",
+              documents: ["Proof of insurance (e.g., benefit card)"],
+              forms: ["Epic coversheet"],
+              nextSteps: ["Print Epic coversheet.", "Check billing indicator in Epic.", "Contact IPP with patient name and MRN."],
+              showBusinessOffice: true
+            }
           },
           {
             text: "No",
-            result: { financialClass: "SK IPP Self-Pay CAD", tip: "Acquire proof and/or validate" }
+            result: {
+              financialClass: "SK IPP Self-Pay CAD",
+              primaryPayer: "SK IPP Self-Pay CAD",
+              paymentRequired: "Yes",
+              tip: "International non-resident patient paying out-of-pocket in Canadian Dollars.",
+              documents: [],
+              forms: ["Epic coversheet", "Financial Responsibility Letter"],
+              nextSteps: ["Contact IPP with patient name and MRN.", "Send family to Business Office for payment."],
+              showBusinessOffice: true
+            }
           }
         ]
       }
     }
   };
 
-  let currentNodeId = decisionTree.startNode;
+  let ynState = ynTreeData.startNode;
 
-  function renderNode(nodeId) {
-    const node = decisionTree.nodes[nodeId];
-    const qElem = document.getElementById("dt-question");
-    const optElem = document.getElementById("dt-options");
-    const resElem = document.getElementById("dt-result");
+  function renderYN() {
+    const app = document.getElementById("dt-yn-app");
+    const item = ynTreeData.nodes[ynState];
+    if (!item) return;
 
-    resElem.style.display = "none";
-    qElem.style.display = "block";
-    optElem.style.display = "flex";
-
-    qElem.innerText = node.question;
-    optElem.innerHTML = "";
-
-    node.options.forEach(opt => {
-      const btn = document.createElement("button");
-      btn.className = "dt-btn";
-      btn.innerText = opt.text;
-      btn.onclick = () => handleChoice(opt);
-      optElem.appendChild(btn);
-    });
-  }
-
-  function handleChoice(option) {
-    if (option.result) {
-      showResult(option.result);
-    } else if (option.nextNode) {
-      currentNodeId = option.nextNode;
-      renderNode(currentNodeId);
+    if (item.question) {
+      let optionsHtml = item.options.map((opt, idx) => `
+        <button class="dt-btn" onclick="window.dtYNSelect(${idx})">${opt.text}</button>
+      `).join("");
+      app.innerHTML = `<h3 class="dt-header">${item.question}</h3><div class="dt-btn-group">${optionsHtml}</div>`;
+    } else {
+      app.innerHTML = renderResultHTML(item, "window.dtYNReset");
     }
   }
 
-  function showResult(result) {
-    document.getElementById("dt-question").style.display = "none";
-    document.getElementById("dt-options").style.display = "none";
-    
-    document.getElementById("res-financial").innerText = result.financialClass;
-    document.getElementById("res-tip").innerText = result.tip;
-    document.getElementById("dt-result").style.display = "block";
-  }
+  window.dtYNSelect = function(optionIndex) {
+    const item = ynTreeData.nodes[ynState];
+    const selectedOption = item.options[optionIndex];
+    if (selectedOption.result) {
+      document.getElementById("dt-yn-app").innerHTML = renderResultHTML(selectedOption.result, "window.dtYNReset");
+    } else if (selectedOption.nextNode) {
+      ynState = selectedOption.nextNode;
+      renderYN();
+    }
+  };
 
-  function resetTree() {
-    currentNodeId = decisionTree.startNode;
-    renderNode(currentNodeId);
-  }
+  window.dtYNReset = function() { ynState = ynTreeData.startNode; renderYN(); };
 
-  document.addEventListener("DOMContentLoaded", () => {
-    renderNode(decisionTree.startNode);
+  // Initialize both components on DOM ready
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMC();
+    renderYN();
   });
+  if (document.readyState === "interactive" || document.readyState === "complete") {
+    renderMC();
+    renderYN();
+  }
+})();
 </script>
+
 
 <h2 id="Financial-Class-Definitions"><a href="#Financial-Class-Definitions" class="headerlink" title="Financial Class Definitions"></a>Financial Class Definitions</h2><ul>
 <li><strong>OHCN:</strong> Valid or present Ontario Health Insurance Plan (OHIP) cardholders; funded by the Ontario provincial government.</li>
