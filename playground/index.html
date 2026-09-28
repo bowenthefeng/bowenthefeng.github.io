@@ -444,6 +444,172 @@
   }
 
   // ==========================================
+  // SHARED STANDARDIZED OUTCOME DEFINITIONS
+  // ==========================================
+  const SHARED_RESULTS = {
+    ohcn_valid: {
+      financialClass: "OHCN (Ontario Health Card Number)",
+      primaryPayer: "OHCN (Ontario Health Card Number)",
+      paymentRequired: "No",
+      tip: "Valid response codes: 50, 51, 52, 53, 54, 55.",
+      documents: ["Ontario Health Card"],
+      forms: [],
+      nextSteps: ["Validate health card in Epic and proceed with registration."],
+      showBusinessOffice: false
+    },
+    ohcn_failed: {
+      financialClass: "SK IPP Self-Pay CAD",
+      primaryPayer: "SK IPP Self-Pay CAD",
+      paymentRequired: "Yes",
+      tip: "Invalid response codes: 0-49 (excluding code 15 - Newborn) or 60-89.",
+      documents: ["Ontario Health Card"],
+      forms: [],
+      nextSteps: [
+        "Send family to Business Office for payment. Additional charges may be billed later.",
+        "The patient/family will be refunded if OHIP coverage is renewed retroactively. Patient/family should contact Business Office with proof of retroactive coverage in order to initiate a refund."
+      ],
+      showBusinessOffice: true
+    },
+    ohcn_forgotten: {
+      financialClass: "OHCN (Ontario Health Card Number)",
+      primaryPayer: "Coverage Unconfirmed",
+      paymentRequired: "No",
+      tip: "Review the patient's prior visits in Epic to determine whether valid OHIP coverage exists on their account. If active and valid OHIP coverage exists, copy the coverage from a prior visit into the current encounter. Use the OHIP Validation Tool to complete real-time validation for current date of service. Note: Coverage Unconfirmed is not a default option.",
+      documents: [],
+      forms: ["SK Forgotten Letter"],
+      nextSteps: [
+        "Provide patient/family with SK Forgotten letter.",
+        "Family has 5 business days to contact the phone number/email listed on the letter to provide valid OHIP details, or they will be billed directly for their visit."
+      ],
+      showBusinessOffice: false
+    },
+    ifhp: {
+      financialClass: "Refugee Health Plan",
+      primaryPayer: "Refugee Health Plan",
+      paymentRequired: "No",
+      tip: "IFHP provides limited, temporary health coverage to refugees and asylum claimants not yet eligible for provincial health insurance. Parent coverage does NOT automatically extend to the child; every individual (including newborns and minor children) must have their own eligibility document.",
+      documents: [
+        "Refugee Protection Claimant Document (RPCD)",
+        "Acknowledgement of Claim and Notice to Return for Interview Letter (AoC)",
+        "Refugee Protection Identity Document (RPID)",
+        "Interim Federal Health Certificate (IFHC)"
+      ],
+      forms: [],
+      nextSteps: [
+        "Review eligible document and input details into Epic.",
+        "Enter UCI number as Member ID and verify coverage dates."
+      ],
+      showBusinessOffice: false
+    },
+    uhip: {
+      financialClass: "UHIP",
+      primaryPayer: "UHIP",
+      paymentRequired: "No",
+      tip: "UHIP is a basic, mandatory primary healthcare plan for international non-resident students in Ontario. Parent coverage does NOT automatically extend to the child; the parent must apply and pay an additional premium to add the child.",
+      documents: ["UHIP / Cowan card (primary)"],
+      forms: ["Governing Law & Jurisdiction form"],
+      nextSteps: [
+        "Review eligible documents and input details into Epic.",
+        "Provide patient with Governing Law & Jurisdiction form."
+      ],
+      showBusinessOffice: false
+    },
+    ontario_private: {
+      financialClass: "SK IPP Insurance CAD",
+      primaryPayer: "SK IPP Insurance CAD",
+      paymentRequired: "No (Check billing indicator)",
+      tip: "A parent's status (citizenship/PR) does not automatically qualify their child for public health coverage. Having a Canadian work permit does not automatically enroll an individual or child in public health coverage.",
+      documents: ["Proof of insurance (e.g., benefit card)"],
+      forms: ["Epic coversheet"],
+      nextSteps: [
+        "Print Epic coversheet from Epic and provide to patient family.",
+        "Check billing indicator in Epic to see if the family is required to pay. If required, direct family to the Business Office with coversheet to make payment.",
+        "Contact the International Patient Portfolio (IPP) with patient name and MRN."
+      ],
+      showBusinessOffice: true
+    },
+    visitor: {
+      financialClass: "SK IPP Self-Pay CAD",
+      primaryPayer: "SK IPP Self-Pay CAD",
+      paymentRequired: "Yes",
+      tip: "Having a visitor visa in Canada does not automatically provide public health insurance. All visitors must pay for hospital care through private insurance or out of pocket.",
+      documents: [],
+      forms: ["Epic coversheet", "Financial Responsibility Letter"],
+      nextSteps: [
+        "Contact the International Patient Portfolio (IPP) with patient name and MRN.",
+        "Send family to Business Office for payment. Additional charges may be billed later."
+      ],
+      showBusinessOffice: true
+    },
+    ontario_uninsured: {
+      financialClass: "SK Ontario Uninsured Self-Pay",
+      primaryPayer: "SK Ontario Uninsured Self-Pay",
+      paymentRequired: "Yes",
+      tip: "Children of Canadian citizens and permanent residents are eligible for provincial health coverage, but enrollment is not automatic. Parents/guardians must apply for the child's health card.",
+      documents: ["Proof of Canadian citizenship or permanent residency (passport, citizenship certificate, PR card, e-COPR)"],
+      forms: ["Epic coversheet"],
+      nextSteps: [
+        "Print Epic coversheet from Epic and provide to patient family.",
+        "Send family to Business Office for payment. Additional charges may be billed later."
+      ],
+      showBusinessOffice: true
+    },
+    oop_insured: {
+      financialClass: "SK Out of Province (OOP) Insured",
+      primaryPayer: "Home Province Health Plan (Reciprocal Billing)",
+      paymentRequired: "No",
+      tip: "Thanks to interprovincial reciprocal agreements, standard hospital/physician services are billed directly to the home province/territory (Alberta, BC, MB, NL, NWT, NS, NU, PEI, SK, QC, YT) without upfront payment.",
+      documents: ["Provincial / Territorial Health Card"],
+      forms: ["Declaration of Inpatient Hospital Insurance Coverage Form (if admitted)"],
+      nextSteps: [
+        "Review eligible document and input details into Epic.",
+        "Verify provincial card appears on Interprovincial Card list.",
+        "If admitted, patient/family must complete Declaration of Inpatient Hospital Insurance Coverage Form and send to patient.accounts@sickkids.ca."
+      ],
+      showBusinessOffice: false
+    },
+    oop_uninsured: {
+      financialClass: "SK Out of Province (OOP) Uninsured Self-Pay",
+      primaryPayer: "SK Out of Province (OOP) Uninsured Self-Pay",
+      paymentRequired: "Yes",
+      tip: "Reciprocal interprovincial billing cannot be processed without an active provincial/territorial health card.",
+      documents: [],
+      forms: [],
+      nextSteps: [
+        "Send family to Business Office for payment. Additional charges may be billed later."
+      ],
+      showBusinessOffice: true
+    },
+    intl_insurance: {
+      financialClass: "SK IPP Insurance CAD",
+      primaryPayer: "SK IPP Insurance CAD",
+      paymentRequired: "No (Check billing indicator)",
+      tip: "Managed through the International Patient Portfolio (IPP). Direct billing to commercial/travel insurance.",
+      documents: ["Proof of insurance (e.g., benefit card)"],
+      forms: ["Epic coversheet"],
+      nextSteps: [
+        "Print Epic coversheet from Epic and provide to patient family.",
+        "Check billing indicator in Epic. Direct family to Business Office if payment is required.",
+        "Contact IPP with patient name and MRN."
+      ],
+      showBusinessOffice: true
+    },
+    intl_selfpay: {
+      financialClass: "SK IPP Self-Pay CAD",
+      primaryPayer: "SK IPP Self-Pay CAD",
+      paymentRequired: "Yes",
+      tip: "International non-resident patient paying out-of-pocket in Canadian Dollars.",
+      documents: [],
+      forms: ["Epic coversheet", "Financial Responsibility Letter"],
+      nextSteps: [
+        "Contact IPP with patient name and MRN.",
+        "Send family to Business Office for payment. Additional charges may be billed later."
+      ],
+      showBusinessOffice: true
+    }
+  };
+
+  // ==========================================
   // 1. MULTIPLE CHOICE DECISION TREE
   // ==========================================
   const mcTreeData = {
@@ -493,127 +659,18 @@
       },
 
       // OUTCOMES
-      res_ohcn_valid: {
-        financialClass: "OHCN (Ontario Health Card Number)",
-        primaryPayer: "OHCN (Ontario Health Card Number)",
-        paymentRequired: "No",
-        tip: "Valid response codes: 50, 51, 52, 53, 54, 55.",
-        documents: ["Ontario Health Card"],
-        forms: [],
-        nextSteps: ["Validate health card in Epic and proceed with registration."]
-      },
-      res_ohcn_failed: {
-        financialClass: "SK IPP Self-Pay CAD",
-        primaryPayer: "SK IPP Self-Pay CAD",
-        paymentRequired: "Yes",
-        tip: "Invalid response codes: 0-49 (excluding code 15 - Newborn) or 60-89.",
-        documents: ["Ontario Health Card"],
-        forms: [],
-        nextSteps: [
-          "Send family to Business Office for payment. Additional charges may be billed later.",
-          "The patient/family will be refunded if OHIP coverage is renewed retroactively."
-        ],
-        showBusinessOffice: true
-      },
-      res_ohcn_forgotten: {
-        financialClass: "OHCN (Ontario Health Card Number)",
-        primaryPayer: "Coverage Unconfirmed",
-        paymentRequired: "No",
-        tip: "Review prior visits in Epic to determine if valid OHIP exists. If active, copy coverage into encounter. Note: Coverage Unconfirmed is not a default option.",
-        documents: [],
-        forms: ["SK Forgotten Letter"],
-        nextSteps: [
-          "Provide patient/family with SK Forgotten letter.",
-          "Family has 5 business days to contact hospital with valid OHIP or face direct billing."
-        ]
-      },
-      res_ifhp: {
-        financialClass: "Refugee Health Plan",
-        primaryPayer: "Refugee Health Plan",
-        paymentRequired: "No",
-        tip: "IFHP provides limited, temporary health coverage to refugees and asylum claimants not yet eligible for provincial insurance. Parent coverage does NOT extend to child.",
-        documents: ["Refugee Protection Claimant Document (RPCD)", "Acknowledgement of Claim (AoC)", "Refugee Protection Identity Document (RPID)", "Interim Federal Health Certificate (IFHC)"],
-        forms: [],
-        nextSteps: ["Review eligible document and input details into Epic.", "Enter UCI number as Member ID and verify coverage dates."]
-      },
-      res_uhip: {
-        financialClass: "UHIP",
-        primaryPayer: "UHIP",
-        paymentRequired: "No",
-        tip: "UHIP is a mandatory healthcare plan for international non-resident students in Ontario. Parent coverage does NOT automatically extend to the child.",
-        documents: ["UHIP / Cowan card (primary)"],
-        forms: ["Governing Law & Jurisdiction form"],
-        nextSteps: ["Review eligible documents and input details into Epic.", "Provide patient with Governing Law & Jurisdiction form."]
-      },
-      res_ontario_private: {
-        financialClass: "SK IPP Insurance CAD",
-        primaryPayer: "SK IPP Insurance CAD",
-        paymentRequired: "No (Check billing indicator)",
-        tip: "A parent's status (citizenship/PR) does not automatically qualify their child for public health coverage. Having a work permit does not auto-enroll children.",
-        documents: ["Proof of insurance (e.g., benefit card)"],
-        forms: ["Epic coversheet"],
-        nextSteps: ["Print Epic coversheet from Epic and provide to family.", "Check billing indicator in Epic.", "Contact IPP with patient name and MRN."],
-        showBusinessOffice: true
-      },
-      res_visitor: {
-        financialClass: "SK IPP Self-Pay CAD",
-        primaryPayer: "SK IPP Self-Pay CAD",
-        paymentRequired: "Yes",
-        tip: "Having a visitor visa in Canada does not provide public health insurance. Visitors must pay out of pocket or via private insurance.",
-        documents: [],
-        forms: ["Epic coversheet", "Financial Responsibility Letter"],
-        nextSteps: ["Contact International Patient Portfolio (IPP) with patient name and MRN.", "Send family to Business Office for payment."],
-        showBusinessOffice: true
-      },
-      res_ontario_uninsured: {
-        financialClass: "SK Ontario Uninsured Self-Pay",
-        primaryPayer: "SK Ontario Uninsured Self-Pay",
-        paymentRequired: "Yes",
-        tip: "Children of Canadian citizens/PRs are eligible for provincial health coverage, but enrollment is not automatic. Parents must apply.",
-        documents: ["Proof of Canadian citizenship or PR (passport, citizenship certificate, PR card, e-COPR)"],
-        forms: ["Epic coversheet"],
-        nextSteps: ["Print Epic coversheet and provide to family.", "Send family to Business Office for payment."],
-        showBusinessOffice: true
-      },
-      res_oop_insured: {
-        financialClass: "SK Out of Province (OOP) Insured",
-        primaryPayer: "Home Province Health Plan (Reciprocal Billing)",
-        paymentRequired: "No",
-        tip: "Standard hospital/physician services are billed directly to home province/territory via interprovincial reciprocal agreements.",
-        documents: ["Provincial / Territorial Health Card"],
-        forms: ["Declaration of Inpatient Hospital Insurance Coverage Form (if admitted)"],
-        nextSteps: ["Review document and input details into Epic.", "Verify card on Interprovincial Card list."]
-      },
-      res_oop_uninsured: {
-        financialClass: "SK Out of Province (OOP) Uninsured Self-Pay",
-        primaryPayer: "SK Out of Province (OOP) Uninsured Self-Pay",
-        paymentRequired: "Yes",
-        tip: "Reciprocal interprovincial billing cannot be processed without an active provincial/territorial health card.",
-        documents: [],
-        forms: [],
-        nextSteps: ["Send family to Business Office for payment."],
-        showBusinessOffice: true
-      },
-      res_intl_insurance: {
-        financialClass: "SK IPP Insurance CAD",
-        primaryPayer: "SK IPP Insurance CAD",
-        paymentRequired: "No (Check billing indicator)",
-        tip: "Managed through the International Patient Portfolio (IPP). Direct billing to commercial/travel insurance.",
-        documents: ["Proof of insurance (e.g., benefit card)"],
-        forms: ["Epic coversheet"],
-        nextSteps: ["Print Epic coversheet and provide to family.", "Contact IPP with patient name and MRN."],
-        showBusinessOffice: true
-      },
-      res_intl_selfpay: {
-        financialClass: "SK IPP Self-Pay CAD",
-        primaryPayer: "SK IPP Self-Pay CAD",
-        paymentRequired: "Yes",
-        tip: "International non-resident patient paying out-of-pocket in Canadian Dollars.",
-        documents: [],
-        forms: ["Epic coversheet", "Financial Responsibility Letter"],
-        nextSteps: ["Contact IPP with patient name and MRN.", "Send family to Business Office for payment."],
-        showBusinessOffice: true
-      }
+      res_ohcn_valid: SHARED_RESULTS.ohcn_valid,
+      res_ohcn_failed: SHARED_RESULTS.ohcn_failed,
+      res_ohcn_forgotten: SHARED_RESULTS.ohcn_forgotten,
+      res_ifhp: SHARED_RESULTS.ifhp,
+      res_uhip: SHARED_RESULTS.uhip,
+      res_ontario_private: SHARED_RESULTS.ontario_private,
+      res_visitor: SHARED_RESULTS.visitor,
+      res_ontario_uninsured: SHARED_RESULTS.ontario_uninsured,
+      res_oop_insured: SHARED_RESULTS.oop_insured,
+      res_oop_uninsured: SHARED_RESULTS.oop_uninsured,
+      res_intl_insurance: SHARED_RESULTS.intl_insurance,
+      res_intl_selfpay: SHARED_RESULTS.intl_selfpay
     }
   };
 
@@ -621,6 +678,7 @@
 
   function renderMC() {
     const app = document.getElementById("dt-mc-app");
+    if (!app) return;
     const item = mcTreeData.nodes[mcState];
     if (!item) return;
 
@@ -654,51 +712,9 @@
       q_ohc_status: {
         question: "Select the status of the Ontario Health Card:",
         options: [
-          {
-            text: "Physical card presented & validation succeeds",
-            result: {
-              financialClass: "OHCN (Ontario Health Card Number)",
-              primaryPayer: "OHCN (Ontario Health Card Number)",
-              paymentRequired: "No",
-              tip: "Valid response codes: 50, 51, 52, 53, 54, 55.",
-              documents: ["Ontario Health Card"],
-              forms: [],
-              nextSteps: ["Validate health card in Epic and proceed with registration."],
-              showBusinessOffice: false
-            }
-          },
-          {
-            text: "Physical card presented & validation fails",
-            result: {
-              financialClass: "SK IPP Self-Pay CAD",
-              primaryPayer: "SK IPP Self-Pay CAD",
-              paymentRequired: "Yes",
-              tip: "Invalid response codes: 0-49 (excluding code 15 - Newborn) or 60-89.",
-              documents: ["Ontario Health Card"],
-              forms: [],
-              nextSteps: [
-                "Send family to Business Office for payment. Additional charges may be billed later.",
-                "The patient/family will be refunded if OHIP coverage is renewed retroactively. Patient/family should contact Business Office with proof of retroactive coverage in order to initiate a refund."
-              ],
-              showBusinessOffice: true
-            }
-          },
-          {
-            text: "Patient forgot card at home",
-            result: {
-              financialClass: "OHCN (Ontario Health Card Number)",
-              primaryPayer: "Coverage Unconfirmed",
-              paymentRequired: "No",
-              tip: "Review the patient's prior visits in Epic to determine whether valid OHIP coverage exists on their account. If active and valid OHIP coverage exists, copy the coverage from a prior visit into the current encounter. Use the OHIP Validation Tool to complete real-time validation for current date of service. Note: Coverage Unconfirmed is not a default option.",
-              documents: [],
-              forms: ["SK Forgotten Letter"],
-              nextSteps: [
-                "Provide patient/family with SK Forgotten letter.",
-                "Family has 5 business days to contact the phone number/email listed on the letter to provide valid OHIP details, or they will be billed directly for their visit."
-              ],
-              showBusinessOffice: false
-            }
-          }
+          { text: "Physical card presented & validation succeeds", result: SHARED_RESULTS.ohcn_valid },
+          { text: "Physical card presented & validation fails", result: SHARED_RESULTS.ohcn_failed },
+          { text: "Patient forgot card at home", result: SHARED_RESULTS.ohcn_forgotten }
         ]
       },
       q_live_ontario: {
@@ -711,80 +727,17 @@
       q_parents_pr_cit: {
         question: "Do BOTH parents/guardians have Canadian citizenship or PR?",
         options: [
-          {
-            text: "Yes",
-            result: {
-              financialClass: "SK Ontario Uninsured Self-Pay",
-              primaryPayer: "SK Ontario Uninsured Self-Pay",
-              paymentRequired: "Yes",
-              tip: "Children of permanent residents and Canadian citizens are eligible for provincial health coverage, but enrollment is not automatic. Parents/guardians must apply for the child's health card.",
-              documents: ["Proof of Canadian citizenship or permanent residency (passport, citizenship certificate, PR card, e-COPR)"],
-              forms: ["Epic coversheet"],
-              nextSteps: [
-                "Print Epic coversheet from Epic and provide to patient family.",
-                "Send family to Business Office for payment. Additional charges may be billed later."
-              ],
-              showBusinessOffice: true
-            }
-          },
+          { text: "Yes", result: SHARED_RESULTS.ontario_uninsured },
           { text: "No", nextNode: "q_insurance_type_ont" }
         ]
       },
       q_insurance_type_ont: {
         question: "Does the patient have private insurance/UHIP/IFHP?",
         options: [
-          {
-            text: "University Health Insurance Plan (UHIP)",
-            result: {
-              financialClass: "UHIP",
-              primaryPayer: "UHIP",
-              paymentRequired: "No",
-              tip: "UHIP is a basic, mandatory primary healthcare plan for international non-resident students in Ontario.",
-              documents: ["UHIP / Cowan card (primary)"],
-              forms: ["Governing Law & Jurisdiction form"],
-              nextSteps: ["Review eligible documents and input details into Epic.", "Provide patient with Governing Law & Jurisdiction form."],
-              showBusinessOffice: false
-            }
-          },
-          {
-            text: "Interim Federal Health Plan (IFHP)",
-            result: {
-              financialClass: "Refugee Health Plan",
-              primaryPayer: "Refugee Health Plan",
-              paymentRequired: "No",
-              tip: "IFHP provides limited, temporary health coverage to refugees and asylum claimants not yet eligible for provincial insurance.",
-              documents: ["Refugee Protection Claimant Document (RPCD)", "Acknowledgement of Claim (AoC)", "Refugee Protection Identity Document (RPID)", "Interim Federal Health Certificate (IFHC)"],
-              forms: [],
-              nextSteps: ["Review eligible document and input details into Epic.", "Enter UCI number as Member ID and verify coverage dates."],
-              showBusinessOffice: false
-            }
-          },
-          {
-            text: "Private Insurance",
-            result: {
-              financialClass: "SK IPP Insurance CAD",
-              primaryPayer: "SK IPP Insurance CAD",
-              paymentRequired: "No (Check billing indicator)",
-              tip: "A parent's status does not automatically qualify their child for public health coverage.",
-              documents: ["Proof of insurance (e.g., benefit card)"],
-              forms: ["Epic coversheet"],
-              nextSteps: ["Print Epic coversheet from Epic and provide to patient family.", "Check billing indicator in Epic.", "Contact IPP with patient name and MRN."],
-              showBusinessOffice: true
-            }
-          },
-          {
-            text: "No Insurance / None of the above",
-            result: {
-              financialClass: "SK IPP Self-Pay CAD",
-              primaryPayer: "SK IPP Self-Pay CAD",
-              paymentRequired: "Yes",
-              tip: "Having a visitor visa in Canada does not automatically provide public health insurance.",
-              documents: [],
-              forms: ["Epic coversheet", "Financial Responsibility Letter"],
-              nextSteps: ["Contact IPP with patient name and MRN.", "Send family to Business Office for payment."],
-              showBusinessOffice: true
-            }
-          }
+          { text: "University Health Insurance Plan (UHIP)", result: SHARED_RESULTS.uhip },
+          { text: "Interim Federal Health Plan (IFHP)", result: SHARED_RESULTS.ifhp },
+          { text: "Private Insurance", result: SHARED_RESULTS.ontario_private },
+          { text: "No Insurance / None of the above", result: SHARED_RESULTS.visitor }
         ]
       },
       q_live_other_province: {
@@ -797,63 +750,15 @@
       q_other_prov_card: {
         question: "Does the patient have a Health Card from another province?",
         options: [
-          {
-            text: "Yes",
-            result: {
-              financialClass: "SK Out of Province (OOP) Insured",
-              primaryPayer: "Home Province Health Plan (Reciprocal Billing)",
-              paymentRequired: "No",
-              tip: "Services billed directly to home province/territory via interprovincial reciprocal agreements.",
-              documents: ["Provincial / Territorial Health Card"],
-              forms: ["Declaration of Inpatient Hospital Insurance Coverage Form (if admitted)"],
-              nextSteps: ["Review eligible document and input details into Epic.", "Verify provincial card appears on Interprovincial Card list."],
-              showBusinessOffice: false
-            }
-          },
-          {
-            text: "No",
-            result: {
-              financialClass: "SK Out of Province (OOP) Uninsured Self-Pay",
-              primaryPayer: "SK Out of Province (OOP) Uninsured Self-Pay",
-              paymentRequired: "Yes",
-              tip: "Reciprocal billing cannot be processed without an active provincial health card.",
-              documents: [],
-              forms: [],
-              nextSteps: ["Send family to Business Office for payment."],
-              showBusinessOffice: true
-            }
-          }
+          { text: "Yes", result: SHARED_RESULTS.oop_insured },
+          { text: "No", result: SHARED_RESULTS.oop_uninsured }
         ]
       },
       q_non_cdn_insurance: {
         question: "Does the patient have private insurance?",
         options: [
-          {
-            text: "Yes",
-            result: {
-              financialClass: "SK IPP Insurance CAD",
-              primaryPayer: "SK IPP Insurance CAD",
-              paymentRequired: "No (Check billing indicator)",
-              tip: "Managed through the International Patient Portfolio (IPP). Direct billing to commercial/travel insurance.",
-              documents: ["Proof of insurance (e.g., benefit card)"],
-              forms: ["Epic coversheet"],
-              nextSteps: ["Print Epic coversheet.", "Check billing indicator in Epic.", "Contact IPP with patient name and MRN."],
-              showBusinessOffice: true
-            }
-          },
-          {
-            text: "No",
-            result: {
-              financialClass: "SK IPP Self-Pay CAD",
-              primaryPayer: "SK IPP Self-Pay CAD",
-              paymentRequired: "Yes",
-              tip: "International non-resident patient paying out-of-pocket in Canadian Dollars.",
-              documents: [],
-              forms: ["Epic coversheet", "Financial Responsibility Letter"],
-              nextSteps: ["Contact IPP with patient name and MRN.", "Send family to Business Office for payment."],
-              showBusinessOffice: true
-            }
-          }
+          { text: "Yes", result: SHARED_RESULTS.intl_insurance },
+          { text: "No", result: SHARED_RESULTS.intl_selfpay }
         ]
       }
     }
@@ -863,6 +768,7 @@
 
   function renderYN() {
     const app = document.getElementById("dt-yn-app");
+    if (!app) return;
     const item = ynTreeData.nodes[ynState];
     if (!item) return;
 
