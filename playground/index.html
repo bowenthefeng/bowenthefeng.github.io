@@ -11,7 +11,7 @@
   <meta charset="utf-8">
 
   
-  <title>Patient Registration Decision Tree - Bowen Feng</title>
+  <title>Playground - Bowen Feng</title>
   
   <link rel="canonical" href="https://bowenfeng.com/playground/">
   
@@ -24,14 +24,14 @@
   
   <meta property="og:site_name" content="Bowen Feng" />
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Patient Registration Decision Tree - Bowen Feng" />
+  <meta property="og:title" content="Playground - Bowen Feng" />
   
   <meta property="og:description" content="">
   
   <meta property="og:url" content="https://bowenfeng.com/playground/" />
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Patient Registration Decision Tree - Bowen Feng">
+  <meta name="twitter:title" content="Playground - Bowen Feng">
   
   <meta name="twitter:description" content="">
   
@@ -195,9 +195,9 @@
 </div>
 
         <div class="trans">
-            <h1>Patient Registration Decision Tree</h1>
+            <h1>Playground</h1>
 
-  
+  <h1 id="Patient-Registration-Decision-Tree"><a href="#Patient-Registration-Decision-Tree" class="headerlink" title="Patient Registration Decision Tree"></a>Patient Registration Decision Tree</h1>
 <style>
   .dt-container {
     max-width: 780px;
@@ -820,7 +820,244 @@
 <li><strong>SK IPP Self-Pay CAD:</strong> International or non-resident patients (e.g., visitors) without accepted coverage who pay out-of-pocket in CAD via the Business Office.</li>
 </ul>
 <h2 id="Health-Card-Validation-Reference-Manual"><a href="#Health-Card-Validation-Reference-Manual" class="headerlink" title="Health Card Validation Reference Manual"></a>Health Card Validation Reference Manual</h2><p><a target="_blank" rel="noopener" href="https://www.ontario.ca/files/2024-10/moh-health-card-validation-reference-manual-en-2024-10-10.pdf"><img src="https://www.ontario.ca/files/2024-10/moh-health-card-validation-reference-manual-en-2024-10-10.pdf" alt="Health Card Validation Reference Manual"></a></p>
+<h1 id="Hosted-Payment-Page"><a href="#Hosted-Payment-Page" class="headerlink" title="Hosted Payment Page"></a>Hosted Payment Page</h1><style>
+  .hpp-container {
+    max-width: 480px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-family: sans-serif;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
 
+  .hpp-title {
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: #1e293b;
+  }
+
+  .hpp-form-group {
+    margin-bottom: 16px;
+  }
+
+  .hpp-label {
+    display: block;
+    font-size: 14px;
+    color: #475569;
+    margin-bottom: 6px;
+  }
+
+  .hpp-radio-group {
+    display: inline-flex;
+    gap: 16px;
+    margin-top: 4px;
+  }
+
+  .hpp-radio-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #334155;
+  }
+
+  .hpp-radio-option input[type="radio"] {
+    margin: 0; /* Clears browser default radio margins */
+  }
+
+  .hpp-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .hpp-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  }
+
+  .hpp-amount-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .hpp-currency-symbol {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 14px;
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .hpp-input-amount {
+    text-align: right; /* Right-aligns the amount */
+  }
+
+  .hpp-btn {
+    width: 100%;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .hpp-btn:hover {
+    background-color: #1d4ed8;
+  }
+
+  .hpp-result-card {
+    margin-top: 14px;
+    padding: 12px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    display: none;
+  }
+
+  .hpp-result-row {
+    margin-bottom: 8px;
+  }
+
+  .hpp-result-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .hpp-result-label {
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .hpp-result-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 4px;
+    word-break: break-all;
+  }
+
+  .hpp-error {
+    color: #dc2626;
+    font-size: 14px;
+    margin-top: 4px;
+    display: none;
+  }
+</style>
+
+<div class="hpp-container">
+  <div class="hpp-title">Hosted Payment Page Invoice Configuration Example</div>
+
+  <!-- Category Selection -->
+  <div class="hpp-form-group">
+    <label class="hpp-label">Payment Category</label>
+    <div class="hpp-radio-group">
+      <label class="hpp-radio-option">
+        <input type="radio" name="hpp_type" value="Patient" checked>
+        Patient
+      </label>
+      <label class="hpp-radio-option">
+        <input type="radio" name="hpp_type" value="Research">
+        Research
+      </label>
+    </div>
+  </div>
+
+  <!-- Invoice Number Input -->
+  <div class="hpp-form-group">
+    <label class="hpp-label" for="hpp_invoice_input">Invoice Number</label>
+    <input 
+      type="text" 
+      id="hpp_invoice_input" 
+      class="hpp-input" 
+      maxlength="15" 
+      placeholder="Enter invoice number (max 15 characters)"
+      autocomplete="off"
+    >
+    <div id="hpp_error_msg" class="hpp-error">Please enter an invoice number.</div>
+  </div>
+
+  <!-- Payment Amount Input -->
+  <div class="hpp-form-group">
+    <label class="hpp-label" for="hpp_amount_input">Payment Amount</label>
+    <div class="hpp-amount-wrapper">
+      <span class="hpp-currency-symbol">$</span>
+      <input 
+        type="number" 
+        id="hpp_amount_input" 
+        class="hpp-input hpp-input-amount" 
+        step="0.01" 
+        min="0.01" 
+        placeholder="0.00"
+      >
+    </div>
+    <div id="hpp_error_msg" class="hpp-error">Please fill in both Invoice Number and Payment Amount.</div>
+  </div>
+
+  <!-- Pay Now Action -->
+<p>  <button type="button" class="hpp-btn" onclick="generateReferenceNumber()">Pay Now</button></p>
+  <!-- Reference Output Card -->
+  <div id="hpp_result_card" class="hpp-result-card">
+    <div class="hpp-result-row">
+      <div class="hpp-result-label">Reference Number Posted to Payment Processor</div>
+      <div id="hpp_ref_output" class="hpp-result-value"></div>
+    </div>
+    <div class="hpp-result-row" style="margin-top: 10px;">
+      <div class="hpp-result-label">Amount Posted to Payment Processor</div>
+      <div id="hpp_amount_output" class="hpp-result-value" style="color: #059669;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function generateReferenceNumber() {
+    const selectedType = document.querySelector('input[name="hpp_type"]:checked').value;
+    const invoiceInput = document.getElementById('hpp_invoice_input');
+    const amountInput = document.getElementById('hpp_amount_input');
+    
+    const invoiceValue = invoiceInput.value.trim();
+    const amountValue = parseFloat(amountInput.value);
+
+    const errorMsg = document.getElementById('hpp_error_msg');
+    const resultCard = document.getElementById('hpp_result_card');
+    const refOutput = document.getElementById('hpp_ref_output');
+    const amountOutput = document.getElementById('hpp_amount_output');
+
+    // Validation check
+    if (!invoiceValue || isNaN(amountValue) || amountValue <= 0) {
+      errorMsg.style.display = 'block';
+      resultCard.style.display = 'none';
+      return;
+    }
+
+    errorMsg.style.display = 'none';
+
+    // Format Reference Number and Currency Output
+    const referenceNumber = `${selectedType}-${invoiceValue}`;
+    const formattedAmount = `$${amountValue.toFixed(2)}`;
+
+    refOutput.textContent = referenceNumber;
+    amountOutput.textContent = formattedAmount;
+    resultCard.style.display = 'block';
+  }
+</script>
 
         </div>
         <!--
