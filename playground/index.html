@@ -197,7 +197,8 @@
         <div class="trans">
             <h1>Playground</h1>
 
-  <h1 id="Patient-Registration-Decision-Tree"><a href="#Patient-Registration-Decision-Tree" class="headerlink" title="Patient Registration Decision Tree"></a>Patient Registration Decision Tree</h1>
+  <hr>
+<h2 id="Patient-Registration-Decision-Tree"><a href="#Patient-Registration-Decision-Tree" class="headerlink" title="Patient Registration Decision Tree"></a>Patient Registration Decision Tree</h2>
 <style>
   .dt-container {
     max-width: 780px;
@@ -217,7 +218,6 @@
   
   .dt-header {
     font-size: 18px;
-    font-weight: 700;
     color: #1a365d;
     margin-top: 0;
     margin-bottom: 16px;
@@ -252,22 +252,16 @@
   
   .dt-result-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 12px;
     margin-bottom: 16px;
-  }
-  
-  @media (max-width: 600px) {
-    .dt-result-grid {
-      grid-template-columns: 1fr;
-    }
   }
 
   .dt-badge-card {
     padding: 12px 14px;
     border-radius: 8px;
     background: #f1f5f9;
-    border-left: 4px solid #0284c7;
+    border-left: 4px solid #059669;
   }
 
   .dt-badge-title {
@@ -331,6 +325,12 @@
     border: 1px solid #bbf7d0;
   }
 
+  .dt-alert-depends {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+  }
+
   .dt-alert-yes {
     background: #fef2f2;
     color: #991b1b;
@@ -363,16 +363,8 @@
   }
 </style>
 
-<h2>Registration Decision Tree (Multiple Choice)</h2>
 <div class="dt-container">
   <div id="dt-mc-app" class="dt-card">
-    <!-- Rendered via JavaScript -->
-  </div>
-</div>
-
-<h2>Registration Decision Tree (Yes / No)</h2>
-<div class="dt-container">
-  <div id="dt-yn-app" class="dt-card">
     <!-- Rendered via JavaScript -->
   </div>
 </div>
@@ -381,9 +373,18 @@
 (function() {
   // Shared Helper to render rich Result HTML
   function renderResultHTML(result, resetFnName) {
-    const isPaymentYes = (result.paymentRequired || "").toLowerCase().startsWith("yes");
-    const alertClass = isPaymentYes ? "dt-alert-yes" : "dt-alert-no";
-    const alertIcon = isPaymentYes ? "⚠️" : "✅";
+    const payReq = (result.paymentRequired || "").toLowerCase();
+    
+    let alertClass = "dt-alert-no";
+    let alertIcon = "✅";
+
+    if (payReq.startsWith("yes")) {
+      alertClass = "dt-alert-yes";
+      alertIcon = "⚠️";
+    } else if (payReq.startsWith("it")) {
+      alertClass = "dt-alert-depends";
+      alertIcon = "⏳";
+    }
 
     let docsHtml = "";
     if (result.documents && result.documents.length > 0) {
@@ -406,10 +407,6 @@
     return `
       <div class="dt-result-grid">
         <div class="dt-badge-card">
-          <div class="dt-badge-title">Financial Class</div>
-          <div class="dt-badge-value">${result.financialClass || 'N/A'}</div>
-        </div>
-        <div class="dt-badge-card" style="border-left-color: #059669;">
           <div class="dt-badge-title">Primary Payer</div>
           <div class="dt-badge-value">${result.primaryPayer || 'N/A'}</div>
         </div>
@@ -448,44 +445,35 @@
   // ==========================================
   const SHARED_RESULTS = {
     ohcn_valid: {
-      financialClass: "OHCN (Ontario Health Card Number)",
-      primaryPayer: "OHCN (Ontario Health Card Number)",
-      paymentRequired: "No",
-      tip: "Valid response codes: 50, 51, 52, 53, 54, 55.",
-      documents: ["Ontario Health Card"],
-      forms: [],
-      nextSteps: ["Validate health card in Epic and proceed with registration."],
-      showBusinessOffice: false
-    },
-    ohcn_failed: {
-      financialClass: "SK IPP Self-Pay CAD",
-      primaryPayer: "SK IPP Self-Pay CAD",
-      paymentRequired: "Yes",
-      tip: "Invalid response codes: 0-49 (excluding code 15 - Newborn) or 60-89.",
+      primaryPayer: "OHCN",
+      paymentRequired: "It Depends",
+      tip: "Ontario residents are entitled to public health coverage under OHIP if they meet provincial residency requirements. However, simply holding a physical card does not guarantee active coverage (e.g., the card may be expired, cancelled, or flagged for administrative reasons). Selecting OHCN as the initial payer is a temporary step. The true payer and financial responsibility are only determined after validating the card in Epic. A valid response code confirms OHIP as the payer. An invalid response code means OHIP will not cover the visit, requiring staff to update the payer to SK IPP SELF-PAY CAD and direct the family to the Business Office for payment.",
       documents: ["Ontario Health Card"],
       forms: [],
       nextSteps: [
-        "Send family to Business Office for payment. Additional charges may be billed later.",
+        "Validate the Ontario Health Card in Epic and check response code.",
+        "If response code is valid (50-55), payment is not required.",
+        "If response code is invalid, change payer to <strong>SK IPP SELF-PAY CAD</strong>, and payment is required. Send family to Business Office for payment. Additional charges may be billed later.",
         "The patient/family will be refunded if OHIP coverage is renewed retroactively. Patient/family should contact Business Office with proof of retroactive coverage in order to initiate a refund."
       ],
       showBusinessOffice: true
     },
     ohcn_forgotten: {
-      financialClass: "OHCN (Ontario Health Card Number)",
-      primaryPayer: "Coverage Unconfirmed",
-      paymentRequired: "No",
-      tip: "Review the patient's prior visits in Epic to determine whether valid OHIP coverage exists on their account. If active and valid OHIP coverage exists, copy the coverage from a prior visit into the current encounter. Use the OHIP Validation Tool to complete real-time validation for current date of service. Note: Coverage Unconfirmed is not a default option.",
+      primaryPayer: "SK FORGOTTEN/INVALID OHIP/IFHP CVG",
+      paymentRequired: "It Depends",
+      tip: "Patients who are Ontario residents may have active OHIP coverage even if they do not have their physical card at the time of registration. Staff should check prior visits in Epic to locate and verify previously billed OHIP information. However, because active status cannot be immediately confirmed at the desk without validating the card, coverage remains unconfirmed until verified. Giving the family the SK Forgotten Letter establishes a 5-business-day grace period for validation while protecting the hospital from unbilled care if coverage turns out to be inactive.",
       documents: [],
       forms: ["SK Forgotten Letter"],
       nextSteps: [
-        "Provide patient/family with SK Forgotten letter.",
-        "Family has 5 business days to contact the phone number/email listed on the letter to provide valid OHIP details, or they will be billed directly for their visit."
+        "Review prior visits in Epic to verify active OHIP coverage.",
+        "Validate the Ontario Health Card in Epic and check response code.",
+        "If response code is valid (50-55), payment is not required. Provide patient/family with SK Forgotten letter. Family has 5 business days to contact the phone number/email listed on the letter to provide valid OHIP details.",
+        "If response code is invalid, or there is no prior visit, change payer to <strong>SK IPP SELF-PAY CAD</strong>, and payment is required. Send family to Business Office for payment. Additional charges may be billed later.",
       ],
-      showBusinessOffice: false
+      showBusinessOffice: true
     },
     ifhp: {
-      financialClass: "Refugee Health Plan",
-      primaryPayer: "Refugee Health Plan",
+      primaryPayer: "REFUGEE HEALTH PLAN",
       paymentRequired: "No",
       tip: "IFHP provides limited, temporary health coverage to refugees and asylum claimants not yet eligible for provincial health insurance. Parent coverage does NOT automatically extend to the child; every individual (including newborns and minor children) must have their own eligibility document.",
       documents: [
@@ -502,8 +490,7 @@
       showBusinessOffice: false
     },
     uhip: {
-      financialClass: "UHIP",
-      primaryPayer: "UHIP",
+      primaryPayer: "UNIVERSITY HEALTH PLAN",
       paymentRequired: "No",
       tip: "UHIP is a basic, mandatory primary healthcare plan for international non-resident students in Ontario. Parent coverage does NOT automatically extend to the child; the parent must apply and pay an additional premium to add the child.",
       documents: ["UHIP / Cowan card (primary)"],
@@ -515,8 +502,7 @@
       showBusinessOffice: false
     },
     ontario_private: {
-      financialClass: "SK IPP Insurance CAD",
-      primaryPayer: "SK IPP Insurance CAD",
+      primaryPayer: "SK IPP INSURANCE CAD",
       paymentRequired: "No (Check billing indicator)",
       tip: "A parent's status (citizenship/PR) does not automatically qualify their child for public health coverage. Having a Canadian work permit does not automatically enroll an individual or child in public health coverage.",
       documents: ["Proof of insurance (e.g., benefit card)"],
@@ -529,8 +515,7 @@
       showBusinessOffice: true
     },
     visitor: {
-      financialClass: "SK IPP Self-Pay CAD",
-      primaryPayer: "SK IPP Self-Pay CAD",
+      primaryPayer: "SK IPP SELF-PAY CAD",
       paymentRequired: "Yes",
       tip: "Having a visitor visa in Canada does not automatically provide public health insurance. All visitors must pay for hospital care through private insurance or out of pocket.",
       documents: [],
@@ -542,23 +527,22 @@
       showBusinessOffice: true
     },
     ontario_uninsured: {
-      financialClass: "SK Ontario Uninsured Self-Pay",
-      primaryPayer: "SK Ontario Uninsured Self-Pay",
+      primaryPayer: "SK ONTARIO UNINSURED SELF-PAY",
       paymentRequired: "Yes",
-      tip: "Children of Canadian citizens and permanent residents are eligible for provincial health coverage, but enrollment is not automatic. Parents/guardians must apply for the child's health card.",
-      documents: ["Proof of Canadian citizenship or permanent residency (passport, citizenship certificate, PR card, e-COPR)"],
+      tip: "Children of Canadian citizens and permanent residents are eligible for provincial health coverage, but enrollment is not automatic. Parents/guardians must apply for the child's health card in order to have valid coverage.",
+      documents: ["Proof of Canadian citizenship or permanent residency (passport, citizenship certificate, PR card, e-COPR) from both parents"],
       forms: ["Epic coversheet"],
       nextSteps: [
-        "Print Epic coversheet from Epic and provide to patient family.",
+        "Confirm whether both parents are Canadian citizens or permanent residents. If they are not, or if only one of them is, change payer to <strong>SK IPP SELF-PAY CAD</strong>. Payment is required regardless.",
+        "If both parents are Canadian citizens or permanent residents, print Epic coversheet from Epic and provide to patient family.",
         "Send family to Business Office for payment. Additional charges may be billed later."
       ],
       showBusinessOffice: true
     },
     oop_insured: {
-      financialClass: "SK Out of Province (OOP) Insured",
-      primaryPayer: "Home Province Health Plan (Reciprocal Billing)",
+      primaryPayer: "HOME PROVINCE",
       paymentRequired: "No",
-      tip: "Thanks to interprovincial reciprocal agreements, standard hospital/physician services are billed directly to the home province/territory (Alberta, BC, MB, NL, NWT, NS, NU, PEI, SK, QC, YT) without upfront payment.",
+      tip: "Thanks to interprovincial reciprocal agreements, standard hospital/physician services are billed directly to the home province/territory (AB, BC, MB, NL, NWT, NS, NU, PEI, SK, QC, YT) without upfront payment.",
       documents: ["Provincial / Territorial Health Card"],
       forms: ["Declaration of Inpatient Hospital Insurance Coverage Form (if admitted)"],
       nextSteps: [
@@ -569,8 +553,7 @@
       showBusinessOffice: false
     },
     oop_uninsured: {
-      financialClass: "SK Out of Province (OOP) Uninsured Self-Pay",
-      primaryPayer: "SK Out of Province (OOP) Uninsured Self-Pay",
+      primaryPayer: "SK OOP UNINSURED SELF-PAY",
       paymentRequired: "Yes",
       tip: "Reciprocal interprovincial billing cannot be processed without an active provincial/territorial health card.",
       documents: [],
@@ -581,8 +564,7 @@
       showBusinessOffice: true
     },
     intl_insurance: {
-      financialClass: "SK IPP Insurance CAD",
-      primaryPayer: "SK IPP Insurance CAD",
+      primaryPayer: "SK IPP INSURANCE CAD",
       paymentRequired: "No (Check billing indicator)",
       tip: "Managed through the International Patient Portfolio (IPP). Direct billing to commercial/travel insurance.",
       documents: ["Proof of insurance (e.g., benefit card)"],
@@ -595,8 +577,7 @@
       showBusinessOffice: true
     },
     intl_selfpay: {
-      financialClass: "SK IPP Self-Pay CAD",
-      primaryPayer: "SK IPP Self-Pay CAD",
+      primaryPayer: "SK IPP SELF-PAY CAD",
       paymentRequired: "Yes",
       tip: "International non-resident patient paying out-of-pocket in Canadian Dollars.",
       documents: [],
@@ -610,7 +591,7 @@
   };
 
   // ==========================================
-  // 1. MULTIPLE CHOICE DECISION TREE
+  // MULTIPLE CHOICE DECISION TREE
   // ==========================================
   const mcTreeData = {
     startNode: "q_ohc",
@@ -618,9 +599,8 @@
       q_ohc: {
         question: "1. Does the patient have an Ontario Health Card?",
         options: [
-          { text: "Yes (Physical card presented & validation succeeds)", nextNode: "res_ohcn_valid" },
-          { text: "Yes, but (Physical card presented & validation fails)", nextNode: "res_ohcn_failed" },
-          { text: "Yes, but (Patient forgot card at home)", nextNode: "res_ohcn_forgotten" },
+          { text: "Yes (Presented physical card)", nextNode: "res_ohcn_valid" },
+          { text: "Yes (Forgot health card at home)", nextNode: "res_ohcn_forgotten" },
           { text: "No", nextNode: "q_residency" }
         ]
       },
@@ -629,29 +609,29 @@
         options: [
           { text: "Ontario", nextNode: "q_ontario_status" },
           { text: "Another Canadian Province or Territory", nextNode: "q_oop_card" },
-          { text: "Outside Canada (International / Visitor)", nextNode: "q_intl_insurance" }
+          { text: "Outside Canada (International/Visitor)", nextNode: "q_intl_insurance" }
         ]
       },
       q_ontario_status: {
-        question: "2. What is the patient's coverage status in Ontario?",
+        question: "3. What is the patient's coverage status in Ontario?",
         options: [
           { text: "Interim Federal Health Program (IFHP)", nextNode: "res_ifhp" },
           { text: "University Health Insurance Plan (UHIP)", nextNode: "res_uhip" },
-          { text: "Private / Commercial Health Insurance", nextNode: "res_ontario_private" },
+          { text: "Private/Commercial Health Insurance", nextNode: "res_ontario_private" },
           { text: "Visiting Canada on a Visitor Visa", nextNode: "res_visitor" },
           { text: "Uninsured child of Canadian Citizens or Permanent Residents", nextNode: "res_ontario_uninsured" },
-          { text: "None of the above (Uninsured / Self-Pay)", nextNode: "res_visitor" }
+          { text: "None of the above (Uninsured/Self-Pay)", nextNode: "res_visitor" }
         ]
       },
       q_oop_card: {
         question: "3. Does the patient have a valid health card from their home province/territory?",
         options: [
-          { text: "Yes (Holds valid provincial card)", nextNode: "res_oop_insured" },
+          { text: "Yes (Holds active provincial card)", nextNode: "res_oop_insured" },
           { text: "No (Does not hold active provincial card)", nextNode: "res_oop_uninsured" }
         ]
       },
       q_intl_insurance: {
-        question: "Does the international patient have valid private commercial or travel insurance?",
+        question: "3. Does the international patient have valid private, commercial or travel insurance?",
         options: [
           { text: "Yes", nextNode: "res_intl_insurance" },
           { text: "No", nextNode: "res_intl_selfpay" }
@@ -660,7 +640,6 @@
 
       // OUTCOMES
       res_ohcn_valid: SHARED_RESULTS.ohcn_valid,
-      res_ohcn_failed: SHARED_RESULTS.ohcn_failed,
       res_ohcn_forgotten: SHARED_RESULTS.ohcn_forgotten,
       res_ifhp: SHARED_RESULTS.ifhp,
       res_uhip: SHARED_RESULTS.uhip,
@@ -695,132 +674,29 @@
   window.dtMCSelect = function(nodeKey) { mcState = nodeKey; renderMC(); };
   window.dtMCReset = function() { mcState = mcTreeData.startNode; renderMC(); };
 
-
-  // ==========================================
-  // 2. YES OR NO DECISION TREE
-  // ==========================================
-  const ynTreeData = {
-    startNode: "q_ohc",
-    nodes: {
-      q_ohc: {
-        question: "Does the patient have an Ontario Health Card?",
-        options: [
-          { text: "Yes", nextNode: "q_ohc_status" },
-          { text: "No", nextNode: "q_live_ontario" }
-        ]
-      },
-      q_ohc_status: {
-        question: "Select the status of the Ontario Health Card:",
-        options: [
-          { text: "Physical card presented & validation succeeds", result: SHARED_RESULTS.ohcn_valid },
-          { text: "Physical card presented & validation fails", result: SHARED_RESULTS.ohcn_failed },
-          { text: "Patient forgot card at home", result: SHARED_RESULTS.ohcn_forgotten }
-        ]
-      },
-      q_live_ontario: {
-        question: "Does the patient live in Ontario?",
-        options: [
-          { text: "Yes", nextNode: "q_parents_pr_cit" },
-          { text: "No", nextNode: "q_live_other_province" }
-        ]
-      },
-      q_parents_pr_cit: {
-        question: "Do BOTH parents/guardians have Canadian citizenship or PR?",
-        options: [
-          { text: "Yes", result: SHARED_RESULTS.ontario_uninsured },
-          { text: "No", nextNode: "q_insurance_type_ont" }
-        ]
-      },
-      q_insurance_type_ont: {
-        question: "Does the patient have private insurance/UHIP/IFHP?",
-        options: [
-          { text: "University Health Insurance Plan (UHIP)", result: SHARED_RESULTS.uhip },
-          { text: "Interim Federal Health Plan (IFHP)", result: SHARED_RESULTS.ifhp },
-          { text: "Private Insurance", result: SHARED_RESULTS.ontario_private },
-          { text: "No Insurance / None of the above", result: SHARED_RESULTS.visitor }
-        ]
-      },
-      q_live_other_province: {
-        question: "Does the patient live in another province in Canada?",
-        options: [
-          { text: "Yes", nextNode: "q_other_prov_card" },
-          { text: "No", nextNode: "q_non_cdn_insurance" }
-        ]
-      },
-      q_other_prov_card: {
-        question: "Does the patient have a Health Card from another province?",
-        options: [
-          { text: "Yes", result: SHARED_RESULTS.oop_insured },
-          { text: "No", result: SHARED_RESULTS.oop_uninsured }
-        ]
-      },
-      q_non_cdn_insurance: {
-        question: "Does the patient have private insurance?",
-        options: [
-          { text: "Yes", result: SHARED_RESULTS.intl_insurance },
-          { text: "No", result: SHARED_RESULTS.intl_selfpay }
-        ]
-      }
-    }
-  };
-
-  let ynState = ynTreeData.startNode;
-
-  function renderYN() {
-    const app = document.getElementById("dt-yn-app");
-    if (!app) return;
-    const item = ynTreeData.nodes[ynState];
-    if (!item) return;
-
-    if (item.question) {
-      let optionsHtml = item.options.map((opt, idx) => `
-        <button class="dt-btn" onclick="window.dtYNSelect(${idx})">${opt.text}</button>
-      `).join("");
-      app.innerHTML = `<h3 class="dt-header">${item.question}</h3><div class="dt-btn-group">${optionsHtml}</div>`;
-    } else {
-      app.innerHTML = renderResultHTML(item, "window.dtYNReset");
-    }
-  }
-
-  window.dtYNSelect = function(optionIndex) {
-    const item = ynTreeData.nodes[ynState];
-    const selectedOption = item.options[optionIndex];
-    if (selectedOption.result) {
-      document.getElementById("dt-yn-app").innerHTML = renderResultHTML(selectedOption.result, "window.dtYNReset");
-    } else if (selectedOption.nextNode) {
-      ynState = selectedOption.nextNode;
-      renderYN();
-    }
-  };
-
-  window.dtYNReset = function() { ynState = ynTreeData.startNode; renderYN(); };
-
-  // Initialize both components on DOM ready
+  // Initialize component on DOM ready
   document.addEventListener("DOMContentLoaded", function() {
     renderMC();
-    renderYN();
   });
   if (document.readyState === "interactive" || document.readyState === "complete") {
     renderMC();
-    renderYN();
   }
 })();
 </script>
 
-
-<h2 id="Financial-Class-Definitions"><a href="#Financial-Class-Definitions" class="headerlink" title="Financial Class Definitions"></a>Financial Class Definitions</h2><ul>
-<li><strong>OHCN:</strong> Valid or present Ontario Health Insurance Plan (OHIP) cardholders; funded by the Ontario provincial government.</li>
-<li><strong>OHCN (Coverage Unconfirmed):</strong> Patient forgotten Ontario Health Card at home; temporary grace period granted to provide card details before billing.</li>
-<li><strong>Refugee Health Plan:</strong> Refugee claimants or protected persons covered under the federal Interim Federal Health Program (IFHP).</li>
-<li><strong>UHIP:</strong> Non-resident international students or their covered dependents holding mandatory University Health Insurance Plan coverage.</li>
-<li><strong>Ontario Uninsured:</strong> Ontario residents lacking OHIP whose parent(s)&#x2F;guardian(s) are Canadian citizens or Permanent Residents; self-pay pending OHIP enrollment.</li>
-<li><strong>Out of Province (OOP) Insured:</strong> Canadian residents living outside Ontario who hold a valid provincial&#x2F;territorial health card billed via reciprocal agreement.</li>
-<li><strong>Out of Province (OOP) Uninsured:</strong> Canadian residents living outside Ontario without a valid provincial health card; billed directly as self-pay.</li>
-<li><strong>SK IPP Insurance CAD:</strong> International or non-resident patients with valid commercial&#x2F;private health or travel insurance billed in CAD via the International Patient Portfolio.</li>
-<li><strong>SK IPP Self-Pay CAD:</strong> International or non-resident patients (e.g., visitors) without accepted coverage who pay out-of-pocket in CAD via the Business Office.</li>
+<p><a target="_blank" rel="noopener" href="https://www.ontario.ca/files/2024-10/moh-health-card-validation-reference-manual-en-2024-10-10.pdf">Health Card Validation Reference Manual</a></p>
+<h2 id="Payer-Definitions"><a href="#Payer-Definitions" class="headerlink" title="Payer Definitions"></a>Payer Definitions</h2><ul>
+<li><strong>OHCN</strong>: <a target="_blank" rel="noopener" href="https://www.ontario.ca/page/your-health#section-6">Ontario Health Insurance Plan (OHIP)</a> is Ontario’s health care plan.</li>
+<li><strong>REFUGEE HEALTH PLAN</strong>: <a target="_blank" rel="noopener" href="https://www.canada.ca/en/immigration-refugees-citizenship/services/refugees/help-within-canada/health-care.html">Interim Federal Health Program (IFHP)</a> provides limited, temporary coverage of health care benefits to resettled refugees, asylum claimants and certain other groups.</li>
+<li><strong>UNIVERSITY HEALTH PLAN</strong>: <a target="_blank" rel="noopener" href="https://uhip.ca/">University Health Insurance Plan (UHIP)</a> is a primary healthcare plan for those studying and working at universities in Ontario.</li>
+<li><strong>SK ONTARIO UNINSURED SELF-PAY</strong>: Ontario residents lacking OHIP, while both parent(s)&#x2F;guardian(s) are Canadian citizens or Permanent Residents; pay out-of-pocket.</li>
+<li><strong>HOME PROVINCE</strong>: Canadian residents living outside Ontario who hold a valid provincial&#x2F;territorial health card billed via reciprocal agreement.</li>
+<li><strong>SK OOP UNINSURED SELF-PAY</strong>: Canadian residents living outside Ontario without a valid provincial health card; pay out-of-pocket.</li>
+<li><strong>SK IPP INSURANCE CAD</strong>: International or non-resident patients (e.g., visitors) with valid commercial&#x2F;private health or travel insurance via the International Patient Portfolio.</li>
+<li><strong>SK IPP SELF-PAY CAD</strong>: International or non-resident patients (e.g., visitors) without accepted coverage; pay out-of-pocket. Also acts as catchall out-of-pocket payer for any patient lacking active, verifiable public or private coverage (including failed OHIP validations, expired cards after grace periods, or uninsured visitors). Families can submit proof of retroactive OHIP to the Business Office for refunds.</li>
 </ul>
-<h2 id="Health-Card-Validation-Reference-Manual"><a href="#Health-Card-Validation-Reference-Manual" class="headerlink" title="Health Card Validation Reference Manual"></a>Health Card Validation Reference Manual</h2><p><a target="_blank" rel="noopener" href="https://www.ontario.ca/files/2024-10/moh-health-card-validation-reference-manual-en-2024-10-10.pdf"><img src="https://www.ontario.ca/files/2024-10/moh-health-card-validation-reference-manual-en-2024-10-10.pdf" alt="Health Card Validation Reference Manual"></a></p>
-<h1 id="Hosted-Payment-Page"><a href="#Hosted-Payment-Page" class="headerlink" title="Hosted Payment Page"></a>Hosted Payment Page</h1><style>
+<hr>
+<h2 id="Hosted-Payment-Page"><a href="#Hosted-Payment-Page" class="headerlink" title="Hosted Payment Page"></a>Hosted Payment Page</h2><style>
   .hpp-container {
     max-width: 780px;
     padding: 20px;
@@ -1159,6 +1035,180 @@
     refOutput.textContent = referenceNumber;
     amountOutput.textContent = formattedAmount;
     resultCard.style.display = 'block';
+  }
+</script>
+
+<hr>
+<h2 id="SMS-Generator"><a href="#SMS-Generator" class="headerlink" title="SMS Generator"></a>SMS Generator</h2><style>
+  .sms-container {
+    max-width: 780px;
+    margin: 20 auto;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-family: sans-serif;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .sms-title {
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: #1e293b;
+  }
+
+  .sms-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  @media (max-width: 768px) {
+    .sms-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .sms-label {
+    display: block;
+    font-size: 14px;
+    color: #475569;
+    margin-bottom: 6px;
+  }
+
+  .sms-form-group {
+    margin-bottom: 1px;
+  }
+
+  .sms-input {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .sms-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  }
+
+  .sms-code-display {
+    width: 100%;
+    height: 225px;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: #0f172a;
+    color: #f8fafc;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+  }
+
+  .sms-btn {
+    width: 100%;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .sms-btn:hover {
+    background-color: #1d4ed8;
+  }
+
+  .sms-preview-card {
+    margin-top: 16px;
+    padding: 16px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    display: none;
+  }
+
+  .sms-result-label {
+    font-size: 18px;
+    font-family: sans-serif;
+    color: #64748b;
+    margin-bottom: 8px;
+  }
+
+  .sms-bubble {
+    background-color: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-family: sans-serif;
+  }
+
+</style>
+
+<div class="sms-container">
+  <div class="sms-title">Automated SMS Reminder Generator</div>
+  
+  <div class="sms-grid">
+    <!-- Top Left: Input Fields -->
+    <div>
+      <div class="sms-form-group">
+        <label class="sms-label" for="sms_input_name">Name</label>
+        <input type="text" id="sms_input_name" class="sms-input" placeholder="Name" value="">
+      </div>
+      <div class="sms-form-group">
+        <label class="sms-label" for="sms_input_entity">Entity</label>
+        <input type="text" id="sms_input_entity" class="sms-input" placeholder="Entity" value="">
+      </div>
+      <div class="sms-form-group">
+        <label class="sms-label" for="sms_input_amount">Amount ($)</label>
+        <input type="text" id="sms_input_amount" class="sms-input" placeholder="Amount" value="">
+      </div>
+    </div>
+    <!-- Right Column: Read-Only Template Code -->
+    <div>
+      <label class="sms-label">Template Configuration</label>
+      <div class="sms-code-display" id="sms_template_code">Dear {name}, this is a friendly reminder from {entity} that your invoice for ${amount} is due for payment. You can visit this page to learn how to pay your bill, https://www.sickkids.ca/en/patients-visitors/pay-your-bill/. If you have already submitted your payment, please disregard this message. Thank you for your prompt attention!</div>
+    </div>
+  </div>
+
+  <!-- Generate Action Button -->
+<p>  <button type="button" class="sms-btn" onclick="generateSmsMessage()">Generate Message</button></p>
+  <!-- Output Display Area -->
+  <div id="sms_preview_card" class="sms-preview-card">
+    <div class="sms-result-label">Generated SMS Preview</div>
+    <div class="sms-bubble">
+      <div id="sms_output_text"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function generateSmsMessage() {
+    const nameVal = document.getElementById('sms_input_name').value.trim() || '{name}';
+    const entityVal = document.getElementById('sms_input_entity').value.trim() || '{entity}';
+    const amountVal = document.getElementById('sms_input_amount').value.trim() || '{amount}';
+
+    const templateText = document.getElementById('sms_template_code').textContent;
+
+    // Replace template placeholders dynamically
+    let formattedMsg = templateText
+      .replace(/{name}/g, nameVal)
+      .replace(/{entity}/g, entityVal)
+      .replace(/{amount}/g, amountVal);
+
+    document.getElementById('sms_output_text').textContent = formattedMsg;
+    document.getElementById('sms_preview_card').style.display = 'block';
   }
 </script>
 
