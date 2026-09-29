@@ -851,6 +851,7 @@
 
   .hpp-radio-group {
     display: inline-flex;
+    flex-wrap: wrap;
     gap: 16px;
     margin-top: 4px;
   }
@@ -862,10 +863,32 @@
     cursor: pointer;
     font-size: 14px;
     color: #334155;
+    vertical-align: middle;
+    transition: opacity 0.2s;
   }
 
-  .hpp-radio-option input[type="radio"] {
-    margin: 0; /* Clears browser default radio margins */
+  .hpp-radio-option.hpp-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .hpp-radio-option input[type="radio"],
+  .hpp-checkbox-option input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .hpp-radio-option.hpp-disabled input[type="radio"] {
+    cursor: not-allowed;
+  }
+
+  .hpp-checkbox-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #334155;
   }
 
   .hpp-input {
@@ -888,6 +911,7 @@
     position: relative;
     display: inline-flex;
     align-items: center;
+    width: 100%;
   }
 
   .hpp-currency-symbol {
@@ -905,7 +929,18 @@
   }
 
   .hpp-input-amount {
-    text-align: right; /* Right-aligns the amount */
+    padding-left: 32px;
+    text-align: right;
+  }
+
+  /* Hide spin buttons for clean alignment */
+  .hpp-input-amount::-webkit-outer-spin-button,
+  .hpp-input-amount::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .hpp-input-amount[type=number] {
+    -moz-appearance: textfield;
   }
 
   .hpp-btn {
@@ -966,7 +1001,7 @@
 <div class="hpp-container">
   <div class="hpp-title">Hosted Payment Page Invoice Configuration Example</div>
 
-  <!-- Category Selection -->
+  <!-- Payment Category Selection -->
   <div class="hpp-form-group">
     <label class="hpp-label">Payment Category</label>
     <div class="hpp-radio-group">
@@ -977,6 +1012,29 @@
       <label class="hpp-radio-option">
         <input type="radio" name="hpp_type" value="Research">
         Research
+      </label>
+      <label class="hpp-radio-option">
+        <input type="radio" name="hpp_type" value="Commercial">
+        Commercial
+      </label>
+      <label class="hpp-radio-option">
+        <input type="radio" name="hpp_type" value="Miscellaneous">
+        Miscellaneous
+      </label>
+    </div>
+  </div>
+
+  <!-- Currency Selection -->
+  <div class="hpp-form-group">
+    <label class="hpp-label">Currency</label>
+    <div class="hpp-radio-group">
+      <label class="hpp-radio-option">
+        <input type="radio" name="hpp_currency" id="hpp_curr_cad" value="CAD" checked>
+        CAD
+      </label>
+      <label class="hpp-radio-option" id="hpp_usd_option_wrapper">
+        <input type="radio" name="hpp_currency" id="hpp_curr_usd" value="USD">
+        USD
       </label>
     </div>
   </div>
@@ -992,7 +1050,6 @@
       placeholder="Enter invoice number (max 15 characters)"
       autocomplete="off"
     >
-    <div id="hpp_error_msg" class="hpp-error">Please enter an invoice number.</div>
   </div>
 
   <!-- Payment Amount Input -->
@@ -1009,7 +1066,15 @@
         placeholder="0.00"
       >
     </div>
-    <div id="hpp_error_msg" class="hpp-error">Please fill in both Invoice Number and Payment Amount.</div>
+  </div>
+
+  <!-- Mandatory Terms & Conditions Checkbox -->
+  <div class="hpp-form-group">
+    <label class="hpp-checkbox-option">
+      <input type="checkbox" id="hpp_terms_checkbox">
+      I agree to the terms and conditions.
+    </label>
+    <div id="hpp_error_msg" class="hpp-error"></div>
   </div>
 
   <!-- Pay Now Action -->
@@ -1028,10 +1093,39 @@
 </div>
 
 <script>
+  function updateCurrencyAvailability() {
+    const selectedType = document.querySelector('input[name="hpp_type"]:checked').value;
+    const usdRadio = document.getElementById('hpp_curr_usd');
+    const cadRadio = document.getElementById('hpp_curr_cad');
+    const usdWrapper = document.getElementById('hpp_usd_option_wrapper');
+
+    if (selectedType === 'Patient') {
+      usdRadio.disabled = false;
+      usdWrapper.classList.remove('hpp-disabled');
+    } else {
+      // If switching away from Patient while USD was selected, force fallback to CAD
+      if (usdRadio.checked) {
+        cadRadio.checked = true;
+      }
+      usdRadio.disabled = true;
+      usdWrapper.classList.add('hpp-disabled');
+    }
+  }
+
+  // Attach change event listeners to category radio buttons
+  document.querySelectorAll('input[name="hpp_type"]').forEach(radio => {
+    radio.addEventListener('change', updateCurrencyAvailability);
+  });
+
+  // Initialize on load
+  updateCurrencyAvailability();
+
   function generateReferenceNumber() {
     const selectedType = document.querySelector('input[name="hpp_type"]:checked').value;
+    const selectedCurrency = document.querySelector('input[name="hpp_currency"]:checked').value;
     const invoiceInput = document.getElementById('hpp_invoice_input');
     const amountInput = document.getElementById('hpp_amount_input');
+    const termsCheckbox = document.getElementById('hpp_terms_checkbox');
     
     const invoiceValue = invoiceInput.value.trim();
     const amountValue = parseFloat(amountInput.value);
@@ -1041,8 +1135,16 @@
     const refOutput = document.getElementById('hpp_ref_output');
     const amountOutput = document.getElementById('hpp_amount_output');
 
-    // Validation check
+    // Consolidated Validation Check
     if (!invoiceValue || isNaN(amountValue) || amountValue <= 0) {
+      errorMsg.textContent = "Please enter a valid Invoice Number and Payment Amount.";
+      errorMsg.style.display = 'block';
+      resultCard.style.display = 'none';
+      return;
+    }
+
+    if (!termsCheckbox.checked) {
+      errorMsg.textContent = "You must agree to the terms and conditions before proceeding.";
       errorMsg.style.display = 'block';
       resultCard.style.display = 'none';
       return;
@@ -1052,7 +1154,7 @@
 
     // Format Reference Number and Currency Output
     const referenceNumber = `${selectedType}-${invoiceValue}`;
-    const formattedAmount = `$${amountValue.toFixed(2)}`;
+    const formattedAmount = `$${amountValue.toFixed(2)} ${selectedCurrency}`;
 
     refOutput.textContent = referenceNumber;
     amountOutput.textContent = formattedAmount;
