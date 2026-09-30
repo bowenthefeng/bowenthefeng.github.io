@@ -1018,6 +1018,22 @@
       return;
     }
 
+    // Miscellaneous invoices must be MISC followed by 10 digits
+    if (selectedType === 'Miscellaneous' && !/^MISC\d{10}$/.test(invoiceValue)) {
+      errorMsg.textContent = "Please double check the invoice number.";
+      errorMsg.style.display = 'block';
+      resultCard.style.display = 'none';
+      return;
+    }
+
+    // Commercial invoices must be CVCSS followed by 10 digits
+    if (selectedType === 'Commercial' && !/^CVCSS\d{10}$/.test(invoiceValue)) {
+      errorMsg.textContent = "Please double check the invoice number.";
+      errorMsg.style.display = 'block';
+      resultCard.style.display = 'none';
+      return;
+    }
+
     if (!termsCheckbox.checked) {
       errorMsg.textContent = "You must agree to the terms and conditions before proceeding.";
       errorMsg.style.display = 'block';
