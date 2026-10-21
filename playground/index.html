@@ -695,6 +695,505 @@
 <li><strong>SK IPP SELF-PAY CAD</strong>: International or non-resident patients (e.g., visitors) without accepted coverage; pay out-of-pocket. Also acts as catchall out-of-pocket payer for any patient lacking active, verifiable public or private coverage (including failed OHIP validations, expired cards after grace periods, or uninsured visitors). Families can submit proof of retroactive OHIP to the Business Office for refunds.</li>
 </ul>
 <hr>
+<h2 id="Self-Serve-Registration-Helper"><a href="#Self-Serve-Registration-Helper" class="headerlink" title="Self-Serve Registration Helper"></a>Self-Serve Registration Helper</h2><style>
+  .reg-playground {
+    max-width: 950px;
+    margin: 20px auto;
+    font-family: sans-serif;
+    color: #1e293b;
+  }
+
+  .reg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .reg-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .reg-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  .reg-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .reg-form-group {
+    margin-bottom: 12px;
+  }
+
+  .reg-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+
+  .reg-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease;
+  }
+
+  .reg-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  }
+
+  .reg-btn {
+    width: 100%;
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .reg-btn:hover {
+    background: #0369a1;
+  }
+
+  /* Success Confirmation Box */
+  .patient-confirmation {
+    display: none;
+    text-align: center;
+    padding: 16px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+  }
+
+  .ticket-number {
+    font-size: 24px;
+    font-weight: 800;
+    color: #166534;
+    letter-spacing: 1px;
+    margin: 8px 0;
+  }
+
+  .qr-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 12px 0;
+  }
+
+  /* Staff Queue List */
+  .queue-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+  }
+
+  .queue-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .queue-item:last-child {
+    border-bottom: none;
+  }
+
+  .queue-item:hover {
+    background: #f1f5f9;
+  }
+
+  .queue-item.active {
+    background: #e0f2fe;
+    border-left: 4px solid #0284c7;
+  }
+
+  .status-badge {
+    font-size: 12px;
+    border-radius: 12px;
+    text-transform: none !important;
+    font-weight: normal !important;
+  }
+
+  .badge-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .badge-completed {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  /* Staff Detail Copy Grid */
+  .staff-detail-panel {
+    display: none;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px dashed #cbd5e1;
+  }
+
+  .copy-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .copy-row .reg-input {
+    background: #f8fafc;
+  }
+
+  .btn-copy {
+    background: #0f172a;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-transform: none !important;
+    font-weight: normal !important;
+  }
+
+  .btn-copy:hover {
+    background: #334155;
+  }
+
+  .btn-clear-all {
+    background: transparent;
+    color: #ef4444;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-transform: none !important;
+    font-weight: normal !important;
+  }
+</style>
+
+<!-- Load QRCode Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<div class="reg-playground">
+  <div class="reg-grid">
+    <!-- COMPONENT 1: PATIENT-FACING SELF-SERVE FORM -->
+    <div class="reg-card">
+      <div class="reg-card-title">
+        <span>📱 Patient Mobile</span>
+      </div>
+      <form id="patientForm" onsubmit="submitPatientRegistration(event)">
+        <div class="reg-form-group">
+          <label class="reg-label" for="pt_first_name">First Name*</label>
+          <input type="text" id="pt_first_name" class="reg-input" required placeholder="e.g., Peter">
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label" for="pt_middle_name">Middle Name</label>
+          <input type="text" id="pt_middle_name" class="reg-input" placeholder="e.g., Benjamin">
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label" for="pt_last_name">Last Name*</label>
+          <input type="text" id="pt_last_name" class="reg-input" required placeholder="e.g., Parker">
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label" for="pt_dob">Date of Birth*</label>
+          <input type="date" id="pt_dob" class="reg-input" required>
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label" for="pt_guarantor_name">Guarantor (Parent/Guardian) Name*</label>
+          <input type="text" id="pt_guarantor_name" class="reg-input" required placeholder="e.g., May Parker">
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label" for="pt_guarantor_phone">Guarantor Phone*</label>
+          <input type="tel" id="pt_guarantor_phone" class="reg-input" required placeholder="e.g., 416-123-4567">
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label" for="pt_email">Contact Email*</label>
+          <input type="email" id="pt_email" class="reg-input" required placeholder="e.g., may.parker@email.com">
+        </div>
+        <button type="submit" class="reg-btn">Submit Registration</button>
+      </form>
+      <!-- Patient Confirmation Card -->
+      <div id="patientConfirmation" class="patient-confirmation">
+        <div style="font-size:14px; color:#15803d; font-weight:600;">Check-In Complete!</div>
+        <div class="ticket-number" id="ticketNumberDisplay">REG-1001</div>
+        <p style="font-size:12px; color:#374151; margin: 4px 0 12px 0;">
+          Present this Ticket # or QR Code to the registration desk.
+        </p>
+        <div class="qr-wrapper">
+          <div id="qrcode"></div>
+        </div>
+        <button type="button" class="reg-btn" style="margin-top:12px; background:#475569;" onclick="resetPatientForm()">+ New Check-In</button>
+      </div>
+    </div>
+    <!-- COMPONENT 2: REGISTRATION STAFF DESK VIEW -->
+    <div class="reg-card">
+      <div class="reg-card-title">
+        <span>💻 Registration Desk</span><br>
+      </div>
+      <button class="btn-clear-all" onclick="clearAllRegistrations()">Clear Queue</button>
+      <!-- Live Queue -->
+      <label class="reg-label">Submitted Patient Queue</label>
+      <ul id="queueList" class="queue-list">
+        <!-- Rendered via JS -->
+      </ul>
+      <!-- Selected Patient Epic Copy Panel -->
+      <div id="staffDetailPanel" class="staff-detail-panel">
+        <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
+          <span id="selectedTicketHeader">Details for REG-XXXX</span>
+          <button class="status-badge badge-completed" onclick="markAsCheckedIn()">Mark Checked-In</button>
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label">First Name</label>
+          <div class="copy-row">
+            <input type="text" id="staff_fn" class="reg-input" readonly>
+            <button class="btn-copy" onclick="copyField('staff_fn')">📋 Copy</button>
+          </div>
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label">Middle Name</label>
+          <div class="copy-row">
+            <input type="text" id="staff_mn" class="reg-input" readonly>
+            <button class="btn-copy" onclick="copyField('staff_mn')">📋 Copy</button>
+          </div>
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label">Last Name</label>
+          <div class="copy-row">
+            <input type="text" id="staff_ln" class="reg-input" readonly>
+            <button class="btn-copy" onclick="copyField('staff_ln')">📋 Copy</button>
+          </div>
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label">Date of Birth</label>
+          <div class="copy-row">
+            <input type="text" id="staff_dob" class="reg-input" readonly>
+            <button class="btn-copy" onclick="copyField('staff_dob')">📋 Copy</button>
+          </div>
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label">Guarantor Name</label>
+          <div class="copy-row">
+            <input type="text" id="staff_gname" class="reg-input" readonly>
+            <button class="btn-copy" onclick="copyField('staff_gname')">📋 Copy</button>
+          </div>
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label">Guarantor Phone</label>
+          <div class="copy-row">
+            <input type="text" id="staff_gphone" class="reg-input" readonly>
+            <button class="btn-copy" onclick="copyField('staff_gphone')">📋 Copy</button>
+          </div>
+        </div>
+        <div class="reg-form-group">
+          <label class="reg-label">Email Address</label>
+          <div class="copy-row">
+            <input type="text" id="staff_email" class="reg-input" readonly>
+            <button class="btn-copy" onclick="copyField('staff_email')">📋 Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const STORAGE_KEY = "hexo_patient_registrations";
+  const COUNTER_KEY = "hexo_patient_counter";
+  let activeTicketId = null;
+
+  // Retrieve existing patient submissions from localStorage
+  function getRegistrations() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  }
+
+  // Save patient submissions list back to localStorage
+  function saveRegistrations(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  // Generate an auto-incrementing sequential ticket ID (REG-1001, REG-1002, etc.)
+  function generateSequentialTicketId() {
+    let currentCounter = parseInt(localStorage.getItem(COUNTER_KEY) || "1001", 10);
+    const ticketId = 'REG-' + currentCounter;
+
+    // Increment and store counter for the next submission
+    localStorage.setItem(COUNTER_KEY, (currentCounter + 1).toString());
+    return ticketId;
+  }
+
+  // Handle Patient Mobile Form Submission
+  window.submitPatientRegistration = function(e) {
+    e.preventDefault();
+
+    const ticketId = generateSequentialTicketId();
+    const record = {
+      ticketId: ticketId,
+      firstName: document.getElementById('pt_first_name').value.trim(),
+      middleName: document.getElementById('pt_middle_name').value.trim(),
+      lastName: document.getElementById('pt_last_name').value.trim(),
+      dob: document.getElementById('pt_dob').value,
+      guarantorName: document.getElementById('pt_guarantor_name').value.trim(),
+      guarantorPhone: document.getElementById('pt_guarantor_phone').value.trim(),
+      email: document.getElementById('pt_email').value.trim(),
+      status: 'Pending',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    const list = getRegistrations();
+    list.unshift(record); // Push new submission to the top of the queue
+    saveRegistrations(list);
+
+    // Update & Display Patient Confirmation Panel
+    document.getElementById('patientForm').style.display = 'none';
+    document.getElementById('ticketNumberDisplay').textContent = ticketId;
+    
+    // Generate QR Code encoding the sequential ticket ID
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), {
+      text: ticketId,
+      width: 128,
+      height: 128
+    });
+
+    document.getElementById('patientConfirmation').style.display = 'block';
+
+    // Refresh Staff Registration Queue View
+    renderStaffQueue();
+    selectPatientRecord(ticketId);
+  };
+
+  // Reset Patient View for Another Check-In
+  window.resetPatientForm = function() {
+    document.getElementById('patientForm').reset();
+    document.getElementById('patientForm').style.display = 'block';
+    document.getElementById('patientConfirmation').style.display = 'none';
+  };
+
+  // Render Submitted Patients List in Staff View
+  function renderStaffQueue() {
+    const queueList = document.getElementById('queueList');
+    const records = getRegistrations();
+
+    if (records.length === 0) {
+      queueList.innerHTML = '<li style="padding:14px; font-size:14px; color:#94a3b8; text-align:center;">No active registrations.</li>';
+      document.getElementById('staffDetailPanel').style.display = 'none';
+      return;
+    }
+
+    queueList.innerHTML = records.map(rec => {
+      const badgeClass = rec.status === 'Pending' ? 'badge-pending' : 'badge-completed';
+      const activeClass = rec.ticketId === activeTicketId ? 'active' : '';
+      return `
+        <li class="queue-item ${activeClass}" onclick="selectPatientRecord('${rec.ticketId}')">
+          <div>
+            <strong style="font-size:14px; color:#0f172a;">${rec.lastName}, ${rec.firstName}</strong>
+            <div style="font-size:12px; color:#64748b;">${rec.ticketId} • ${rec.timestamp}</div>
+          </div>
+          <span class="status-badge ${badgeClass}">${rec.status}</span>
+        </li>
+      `;
+    }).join('');
+  }
+
+  // Populate Staff Copy Panel with Selected Patient's Demographics
+  window.selectPatientRecord = function(ticketId) {
+    activeTicketId = ticketId;
+    const records = getRegistrations();
+    const selected = records.find(r => r.ticketId === ticketId);
+
+    if (!selected) return;
+
+    document.getElementById('selectedTicketHeader').textContent = `Details for ${selected.ticketId} (${selected.status})`;
+    document.getElementById('staff_fn').value = selected.firstName || '';
+    document.getElementById('staff_mn').value = selected.middleName || '';
+    document.getElementById('staff_ln').value = selected.lastName || '';
+    document.getElementById('staff_dob').value = selected.dob || '';
+    document.getElementById('staff_gname').value = selected.guarantorName || '';
+    document.getElementById('staff_gphone').value = selected.guarantorPhone || '';
+    document.getElementById('staff_email').value = selected.email || '';
+
+    document.getElementById('staffDetailPanel').style.display = 'block';
+    renderStaffQueue();
+  };
+
+  // One-Click Field Copy Helper for Epic Input
+  window.copyField = function(elementId) {
+    const input = document.getElementById(elementId);
+    if (!input.value) return;
+
+    navigator.clipboard.writeText(input.value).then(() => {
+      const originalBg = input.style.background;
+      input.style.background = '#dcfce7'; // Visual feedback (green highlight)
+      setTimeout(() => {
+        input.style.background = originalBg;
+      }, 500);
+    });
+  };
+
+  // Update Status to Checked In
+  window.markAsCheckedIn = function() {
+    if (!activeTicketId) return;
+    const records = getRegistrations();
+    const index = records.findIndex(r => r.ticketId === activeTicketId);
+    if (index !== -1) {
+      records[index].status = 'Checked In';
+      saveRegistrations(records);
+      selectPatientRecord(activeTicketId);
+    }
+  };
+
+  // Clear All Queue Entries and Reset Counter back to 1001
+  window.clearAllRegistrations = function() {
+    if (confirm("Are you sure you want to clear all patient submissions and reset the queue counter?")) {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(COUNTER_KEY);
+      activeTicketId = null;
+      renderStaffQueue();
+    }
+  };
+
+  // Initialize Queue View on Page Load
+  document.addEventListener('DOMContentLoaded', renderStaffQueue);
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    renderStaffQueue();
+  }
+})();
+</script>
+
+<hr>
 <h2 id="Hosted-Payment-Page"><a href="#Hosted-Payment-Page" class="headerlink" title="Hosted Payment Page"></a>Hosted Payment Page</h2><style>
   .hpp-container {
     max-width: 780px;
