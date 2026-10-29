@@ -200,56 +200,226 @@
   <hr>
 <h2 id="Patient-Registration-Decision-Tree"><a href="#Patient-Registration-Decision-Tree" class="headerlink" title="Patient Registration Decision Tree"></a>Patient Registration Decision Tree</h2>
 <style>
-  .dt-container {
-    max-width: 780px;
-    margin: 20px auto;
-    font-family: sans-serif;
-    color: #2c3e50;
+  /* ============================================================
+     Playground shared design tokens + base (light & dark mode)
+     All components inherit the site font and adapt to the
+     theme via `body.darkmode` variable overrides.
+     ============================================================ */
+  :root {
+    --pg-bg: #ffffff;
+    --pg-bg-soft: #f8fafc;
+    --pg-bg-muted: #f1f5f9;
+    --pg-border: #e2e8f0;
+    --pg-border-strong: #cbd5e1;
+    --pg-text: #334155;
+    --pg-heading: #0f172a;
+    --pg-muted: #64748b;
+    --pg-faint: #94a3b8;
+    --pg-accent: #0284c7;
+    --pg-accent-hover: #0369a1;
+    --pg-accent-soft: #e0f2fe;
+    --pg-ink: #0f172a;
+    --pg-ink-hover: #334155;
+    --pg-focus-ring: rgba(2, 132, 199, 0.18);
+    --pg-success-bg: #f0fdf4;
+    --pg-success-border: #bbf7d0;
+    --pg-success-text: #166534;
+    --pg-success-strong: #15803d;
+    --pg-warn-bg: #fffbeb;
+    --pg-warn-border: #fde68a;
+    --pg-warn-text: #92400e;
+    --pg-error-bg: #fef2f2;
+    --pg-error-border: #fecaca;
+    --pg-error-text: #991b1b;
+    --pg-error-strong: #dc2626;
+    --pg-positive: #059669;
+    --pg-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
-  
-  .dt-card {
-    background: #ffffff;
-    border: 1px solid #e1e8ed;
+
+  body.darkmode {
+    --pg-bg: #26262c;
+    --pg-bg-soft: #2e2e36;
+    --pg-bg-muted: #34343d;
+    --pg-border: #43434d;
+    --pg-border-strong: #55555f;
+    --pg-text: #d7d7de;
+    --pg-heading: #f2f2f5;
+    --pg-muted: #a7a7b3;
+    --pg-faint: #7c7c88;
+    --pg-accent: #38bdf8;
+    --pg-accent-hover: #7dd3fc;
+    --pg-accent-soft: #0c3a4d;
+    --pg-ink: #e8e8ee;
+    --pg-ink-hover: #ffffff;
+    --pg-focus-ring: rgba(56, 189, 248, 0.25);
+    --pg-success-bg: #0f2e1f;
+    --pg-success-border: #1d5c37;
+    --pg-success-text: #86efac;
+    --pg-success-strong: #4ade80;
+    --pg-warn-bg: #32270a;
+    --pg-warn-border: #6b5416;
+    --pg-warn-text: #fcd34d;
+    --pg-error-bg: #3a1414;
+    --pg-error-border: #6e2424;
+    --pg-error-text: #fca5a5;
+    --pg-error-strong: #f87171;
+    --pg-positive: #34d399;
+    --pg-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Shared base: every playground component inherits the site
+     typography, fills the content column, and uses tokens. */
+  .dt-container,
+  .reg-playground,
+  .hpp-container {
+    max-width: 100%;
+    margin: 24px auto;
+    font-family: "Inter", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 1.4rem;
+    line-height: 1.6;
+    color: var(--pg-text);
+    color-scheme: light dark;
+  }
+
+  /* Unified card surface */
+  .dt-card,
+  .reg-card,
+  .hpp-container {
+    background: var(--pg-bg);
+    border: 1px solid var(--pg-border);
     border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease-in-out;
+    padding: 20px;
+    box-shadow: var(--pg-shadow);
   }
-  
-  .dt-header {
-    font-size: 18px;
-    color: #1a365d;
+
+  /* Unified component titles */
+  .dt-header,
+  .reg-card-title,
+  .hpp-title {
+    font-family: inherit;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--pg-heading);
     margin-top: 0;
     margin-bottom: 16px;
-    line-height: 1.4;
   }
-  
+
+  /* Unified field labels */
+  .reg-label,
+  .hpp-label {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--pg-muted);
+    margin-bottom: 4px;
+  }
+
+  /* Unified text inputs */
+  .reg-input,
+  .hpp-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--pg-border-strong);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 1.4rem;
+    background: var(--pg-bg);
+    color: var(--pg-text);
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .reg-input:focus,
+  .hpp-input:focus {
+    border-color: var(--pg-accent);
+    box-shadow: 0 0 0 2px var(--pg-focus-ring);
+  }
+
+  /* Unified buttons: kill Skeleton's uppercase outside the blog */
+  .dt-btn,
+  .reg-btn,
+  .hpp-btn,
+  .dt-restart-btn,
+  .btn-copy,
+  .status-badge {
+    font-family: inherit;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+  }
+
+  /* Unified primary buttons */
+  .reg-btn,
+  .hpp-btn {
+    width: 100%;
+    height: auto;
+    line-height: 1.5;
+    padding: 10px 14px;
+    background: var(--pg-accent);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .reg-btn:hover,
+  .hpp-btn:hover {
+    background: var(--pg-accent-hover);
+  }
+
+  body.darkmode .reg-btn,
+  body.darkmode .hpp-btn {
+    color: #06202e;
+  }
+
+  /* Unified secondary (ghost) button */
+  .reg-btn-secondary {
+    background: transparent;
+    border: 1px solid var(--pg-border-strong);
+    color: var(--pg-text);
+  }
+
+  .reg-btn-secondary:hover {
+    background: var(--pg-bg-soft);
+  }
+</style>
+<style>
   .dt-btn-group {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin-top: 16px;
   }
-  
+
   .dt-btn {
-    background: #f8fafc;
-    border: 1.5px solid #cbd5e1;
+    display: block;
+    width: 100%;
+    height: auto;
+    line-height: 1.5;
+    padding: 10px 14px;
+    background: var(--pg-bg-soft);
+    border: 1.5px solid var(--pg-border-strong);
     border-radius: 8px;
-    font-size: 14px;
-    color: #334155;
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--pg-text);
     text-align: left;
     cursor: pointer;
-    text-transform: none !important;
-    font-weight: normal !important;
     transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  
+
   .dt-btn:hover {
-    background: #e0f2fe;
-    border-color: #0284c7;
-    color: #0369a1;
+    background: var(--pg-accent-soft);
+    border-color: var(--pg-accent);
+    color: var(--pg-heading);
   }
-  
+
   .dt-result-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -260,43 +430,44 @@
   .dt-badge-card {
     padding: 12px 14px;
     border-radius: 8px;
-    background: #f1f5f9;
-    border-left: 4px solid #059669;
+    background: var(--pg-bg-muted);
+    border-left: 4px solid var(--pg-positive);
   }
 
   .dt-badge-title {
-    font-size: 18px;
+    font-size: 1.2rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #64748b;
+    letter-spacing: 0.05em;
+    color: var(--pg-muted);
     font-weight: 700;
     margin-bottom: 4px;
   }
 
   .dt-badge-value {
-    font-size: 14px;
+    font-size: 1.5rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--pg-heading);
   }
 
   .dt-section {
     margin-top: 16px;
     padding-top: 14px;
-    border-top: 1px dashed #e2e8f0;
+    border-top: 1px dashed var(--pg-border-strong);
   }
 
   .dt-section-title {
-    font-size: 18px;
+    font-size: 1.2rem;
     font-weight: 700;
     text-transform: uppercase;
-    color: #475569;
+    letter-spacing: 0.04em;
+    color: var(--pg-muted);
     margin-bottom: 6px;
   }
 
   .dt-section-content {
-    font-size: 14px;
-    line-height: 1.5;
-    color: #334155;
+    font-size: 1.4rem;
+    line-height: 1.6;
+    color: var(--pg-text);
   }
 
   .dt-section-content ul {
@@ -311,7 +482,7 @@
   .dt-alert {
     padding: 10px 14px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 16px;
     display: flex;
@@ -320,46 +491,50 @@
   }
 
   .dt-alert-no {
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #bbf7d0;
+    background: var(--pg-success-bg);
+    color: var(--pg-success-text);
+    border: 1px solid var(--pg-success-border);
   }
 
   .dt-alert-depends {
-    background: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fde68a;
+    background: var(--pg-warn-bg);
+    color: var(--pg-warn-text);
+    border: 1px solid var(--pg-warn-border);
   }
 
   .dt-alert-yes {
-    background: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
+    background: var(--pg-error-bg);
+    color: var(--pg-error-text);
+    border: 1px solid var(--pg-error-border);
   }
 
   .dt-restart-btn {
     margin-top: 20px;
-    background: #0f172a;
-    color: #ffffff;
+    height: auto;
+    line-height: 1.5;
+    padding: 10px 14px;
+    background: var(--pg-ink);
+    color: var(--pg-bg);
     border: none;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 1.4rem;
     font-weight: 600;
     cursor: pointer;
+    transition: background 0.15s ease;
   }
 
   .dt-restart-btn:hover {
-    background: #334155;
+    background: var(--pg-ink-hover);
   }
 
   .dt-business-office {
     margin-top: 16px;
     padding: 10px 12px;
-    background: #fffbebf5;
-    border: 1px solid #fef3c7;
+    background: var(--pg-warn-bg);
+    border: 1px solid var(--pg-warn-border);
     border-radius: 6px;
-    font-size: 14px;
-    color: #92400e;
+    font-size: 1.4rem;
+    color: var(--pg-warn-text);
   }
 </style>
 
@@ -695,15 +870,8 @@
 <li><strong>SK IPP SELF-PAY CAD</strong>: International or non-resident patients (e.g., visitors) without accepted coverage; pay out-of-pocket. Also acts as catchall out-of-pocket payer for any patient lacking active, verifiable public or private coverage (including failed OHIP validations, expired cards after grace periods, or uninsured visitors). Families can submit proof of retroactive OHIP to the Business Office for refunds.</li>
 </ul>
 <hr>
-<h2 id="Self-Serve-Registration-Helper"><a href="#Self-Serve-Registration-Helper" class="headerlink" title="Self-Serve Registration Helper"></a>Self-Serve Registration Helper</h2><p>In this demo tool, the data entered is stored locally on your device. </p>
+<h2 id="Self-Serve-Registration-Helper"><a href="#Self-Serve-Registration-Helper" class="headerlink" title="Self-Serve Registration Helper"></a>Self-Serve Registration Helper</h2><p>In this demo tool, the data entered is stored locally on your device.</p>
 <style>
-  .reg-playground {
-    max-width: 950px;
-    margin: 20px auto;
-    font-family: sans-serif;
-    color: #1e293b;
-  }
-
   .reg-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -716,70 +884,16 @@
     }
   }
 
-  .reg-card {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  }
-
   .reg-card-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #0f172a;
-    margin-top: 0;
-    margin-bottom: 16px;
     padding-bottom: 8px;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid var(--pg-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
 
   .reg-form-group {
-    margin-bottom: 12px;
-  }
-
-  .reg-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #64748b;
-    margin-bottom: 4px;
-  }
-
-  .reg-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 14px;
-    box-sizing: border-box;
-    transition: border-color 0.15s ease;
-  }
-
-  .reg-input:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-  }
-
-  .reg-btn {
-    width: 100%;
-    background: #0284c7;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-
-  .reg-btn:hover {
-    background: #0369a1;
+    margin-bottom: 14px;
   }
 
   /* Success Confirmation Box */
@@ -787,15 +901,27 @@
     display: none;
     text-align: center;
     padding: 16px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+    background: var(--pg-success-bg);
+    border: 1px solid var(--pg-success-border);
     border-radius: 8px;
   }
 
+  .confirm-title {
+    font-size: 1.4rem;
+    color: var(--pg-success-strong);
+    font-weight: 600;
+  }
+
+  .confirm-sub {
+    font-size: 1.2rem;
+    color: var(--pg-text);
+    margin: 4px 0 12px 0;
+  }
+
   .ticket-number {
-    font-size: 24px;
+    font-size: 2.4rem;
     font-weight: 800;
-    color: #166534;
+    color: var(--pg-success-strong);
     letter-spacing: 1px;
     margin: 8px 0;
   }
@@ -806,6 +932,10 @@
     margin: 12px 0;
   }
 
+  .qr-wrapper img {
+    box-shadow: none;
+  }
+
   /* Staff Queue List */
   .queue-list {
     list-style: none;
@@ -813,13 +943,21 @@
     margin: 0;
     max-height: 220px;
     overflow-y: auto;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--pg-border);
     border-radius: 6px;
+    background: var(--pg-bg);
+  }
+
+  .queue-empty {
+    padding: 14px;
+    font-size: 1.4rem;
+    color: var(--pg-faint);
+    text-align: center;
   }
 
   .queue-item {
     padding: 10px 12px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--pg-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -832,29 +970,47 @@
   }
 
   .queue-item:hover {
-    background: #f1f5f9;
+    background: var(--pg-bg-muted);
   }
 
   .queue-item.active {
-    background: #e0f2fe;
-    border-left: 4px solid #0284c7;
+    background: var(--pg-accent-soft);
+    border-left: 4px solid var(--pg-accent);
+  }
+
+  .queue-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--pg-heading);
+  }
+
+  .queue-meta {
+    font-size: 1.2rem;
+    color: var(--pg-muted);
   }
 
   .status-badge {
-    font-size: 12px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border: none;
     border-radius: 12px;
-    text-transform: none !important;
-    font-weight: normal !important;
+    padding: 4px 12px;
+    height: auto;
+    line-height: 1.5;
+    cursor: pointer;
+    white-space: nowrap;
   }
 
   .badge-pending {
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--pg-warn-bg);
+    color: var(--pg-warn-text);
+    border: 1px solid var(--pg-warn-border);
   }
 
   .badge-completed {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--pg-success-bg);
+    color: var(--pg-success-text);
+    border: 1px solid var(--pg-success-border);
   }
 
   /* Staff Detail Copy Grid */
@@ -862,7 +1018,18 @@
     display: none;
     margin-top: 16px;
     padding-top: 12px;
-    border-top: 1px dashed #cbd5e1;
+    border-top: 1px dashed var(--pg-border-strong);
+  }
+
+  .staff-detail-head {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--pg-heading);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
   }
 
   .copy-row {
@@ -873,34 +1040,44 @@
   }
 
   .copy-row .reg-input {
-    background: #f8fafc;
+    background: var(--pg-bg-soft);
+  }
+
+  .reg-input.copied {
+    background: var(--pg-success-bg);
+    border-color: var(--pg-success-border);
   }
 
   .btn-copy {
-    background: #0f172a;
-    color: #ffffff;
+    height: auto;
+    line-height: 1.5;
+    padding: 8px 14px;
+    background: var(--pg-ink);
+    color: var(--pg-bg);
     border: none;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 1.2rem;
+    font-weight: 400;
     cursor: pointer;
     white-space: nowrap;
-    text-transform: none !important;
-    font-weight: normal !important;
+    transition: background 0.15s ease;
   }
 
   .btn-copy:hover {
-    background: #334155;
+    background: var(--pg-ink-hover);
   }
 
   .btn-clear-all {
     background: transparent;
-    color: #ef4444;
+    color: var(--pg-error-strong);
     border: none;
-    font-size: 12px;
+    font-size: 1.2rem;
+    font-weight: 400;
     cursor: pointer;
     text-decoration: underline;
-    text-transform: none !important;
-    font-weight: normal !important;
+    padding: 0;
+    height: auto;
+    line-height: 1.5;
   }
 </style>
 
@@ -947,15 +1124,15 @@
       </form>
       <!-- Patient Confirmation Card -->
       <div id="patientConfirmation" class="patient-confirmation">
-        <div style="font-size:14px; color:#15803d; font-weight:600;">Check-In Complete!</div>
+        <div class="confirm-title">Check-In Complete!</div>
         <div class="ticket-number" id="ticketNumberDisplay">REG-1001</div>
-        <p style="font-size:12px; color:#374151; margin: 4px 0 12px 0;">
+        <p class="confirm-sub">
           Present this Ticket # or QR Code to the registration desk.
         </p>
         <div class="qr-wrapper">
           <div id="qrcode"></div>
         </div>
-        <button type="button" class="reg-btn" style="margin-top:12px; background:#475569;" onclick="resetPatientForm()">+ New Check-In</button>
+        <button type="button" class="reg-btn reg-btn-secondary" style="margin-top:12px;" onclick="resetPatientForm()">+ New Check-In</button>
       </div>
     </div>
     <!-- COMPONENT 2: REGISTRATION STAFF DESK VIEW -->
@@ -971,7 +1148,7 @@
       </ul>
       <!-- Selected Patient Epic Copy Panel -->
       <div id="staffDetailPanel" class="staff-detail-panel">
-        <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
+        <div class="staff-detail-head">
           <span id="selectedTicketHeader">Details for REG-XXXX</span>
           <button class="status-badge badge-completed" onclick="markAsCheckedIn()">Mark Checked-In</button>
         </div>
@@ -1109,7 +1286,7 @@
     const records = getRegistrations();
 
     if (records.length === 0) {
-      queueList.innerHTML = '<li style="padding:14px; font-size:14px; color:#94a3b8; text-align:center;">No active registrations.</li>';
+      queueList.innerHTML = '<li class="queue-empty">No active registrations.</li>';
       document.getElementById('staffDetailPanel').style.display = 'none';
       return;
     }
@@ -1120,8 +1297,8 @@
       return `
         <li class="queue-item ${activeClass}" onclick="selectPatientRecord('${rec.ticketId}')">
           <div>
-            <strong style="font-size:14px; color:#0f172a;">${rec.lastName}, ${rec.firstName}</strong>
-            <div style="font-size:12px; color:#64748b;">${rec.ticketId} • ${rec.timestamp}</div>
+            <strong class="queue-name">${rec.lastName}, ${rec.firstName}</strong>
+            <div class="queue-meta">${rec.ticketId} • ${rec.timestamp}</div>
           </div>
           <span class="status-badge ${badgeClass}">${rec.status}</span>
         </li>
@@ -1156,10 +1333,9 @@
     if (!input.value) return;
 
     navigator.clipboard.writeText(input.value).then(() => {
-      const originalBg = input.style.background;
-      input.style.background = '#dcfce7'; // Visual feedback (green highlight)
+      input.classList.add('copied'); // Visual feedback (success highlight)
       setTimeout(() => {
-        input.style.background = originalBg;
+        input.classList.remove('copied');
       }, 500);
     });
   };
@@ -1196,32 +1372,8 @@
 
 <hr>
 <h2 id="Hosted-Payment-Page"><a href="#Hosted-Payment-Page" class="headerlink" title="Hosted Payment Page"></a>Hosted Payment Page</h2><style>
-  .hpp-container {
-    max-width: 780px;
-    padding: 20px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-family: sans-serif;
-    background-color: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .hpp-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: #1e293b;
-  }
-
   .hpp-form-group {
-    margin-bottom: 16px;
-  }
-
-  .hpp-label {
-    display: block;
-    font-size: 14px;
-    color: #475569;
-    margin-bottom: 6px;
+    margin-bottom: 14px;
   }
 
   .hpp-radio-group {
@@ -1236,8 +1388,8 @@
     align-items: center;
     gap: 6px;
     cursor: pointer;
-    font-size: 14px;
-    color: #334155;
+    font-size: 1.4rem;
+    color: var(--pg-text);
     vertical-align: middle;
     transition: opacity 0.2s;
   }
@@ -1251,6 +1403,7 @@
   .hpp-checkbox-option input[type="checkbox"] {
     margin: 0;
     cursor: pointer;
+    accent-color: var(--pg-accent);
   }
 
   .hpp-radio-option.hpp-disabled input[type="radio"] {
@@ -1262,24 +1415,8 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    font-size: 14px;
-    color: #334155;
-  }
-
-  .hpp-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 14px;
-    box-sizing: border-box;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .hpp-input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    font-size: 1.4rem;
+    color: var(--pg-text);
   }
 
   .hpp-amount-wrapper {
@@ -1289,17 +1426,24 @@
     width: 100%;
   }
 
+  /* Cancel the theme's default input bottom margin inside the
+     wrapper, otherwise the wrapper grows taller than the input
+     and the $ symbol centers below the field's true middle. */
+  .hpp-amount-wrapper .hpp-input {
+    margin-bottom: 0;
+  }
+
   .hpp-currency-symbol {
     position: absolute;
     left: 0;
     top: 0;
-    bottom: 14px;
+    bottom: 0;
     width: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
-    font-size: 14px;
+    color: var(--pg-muted);
+    font-size: 1.4rem;
     pointer-events: none;
   }
 
@@ -1318,26 +1462,11 @@
     -moz-appearance: textfield;
   }
 
-  .hpp-btn {
-    width: 100%;
-    background-color: #2563eb;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .hpp-btn:hover {
-    background-color: #1d4ed8;
-  }
-
   .hpp-result-card {
     margin-top: 14px;
     padding: 12px;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--pg-bg-soft);
+    border: 1px solid var(--pg-border);
     border-radius: 6px;
     display: none;
   }
@@ -1351,23 +1480,28 @@
   }
 
   .hpp-result-label {
-    font-size: 14px;
-    letter-spacing: 0.05em;
-    color: #64748b;
+    font-size: 1.2rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--pg-muted);
   }
 
   .hpp-result-value {
-    font-size: 14px;
+    font-size: 1.4rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--pg-heading);
     margin-top: 4px;
     word-break: break-all;
   }
 
+  .hpp-amount-positive {
+    color: var(--pg-positive);
+  }
+
   .hpp-error {
-    color: #dc2626;
-    font-size: 14px;
+    color: var(--pg-error-strong);
+    font-size: 1.3rem;
     margin-top: 4px;
     display: none;
   }
@@ -1417,11 +1551,11 @@
   <!-- Invoice Number Input -->
   <div class="hpp-form-group">
     <label class="hpp-label" for="hpp_invoice_input">Invoice Number</label>
-    <input 
-      type="text" 
-      id="hpp_invoice_input" 
-      class="hpp-input" 
-      maxlength="15" 
+    <input
+      type="text"
+      id="hpp_invoice_input"
+      class="hpp-input"
+      maxlength="15"
       placeholder="Enter invoice number (max 15 characters)"
       autocomplete="off"
     >
@@ -1432,12 +1566,12 @@
     <label class="hpp-label" for="hpp_amount_input">Payment Amount</label>
     <div class="hpp-amount-wrapper">
       <span class="hpp-currency-symbol">$</span>
-      <input 
-        type="number" 
-        id="hpp_amount_input" 
-        class="hpp-input hpp-input-amount" 
-        step="0.01" 
-        min="0.01" 
+      <input
+        type="number"
+        id="hpp_amount_input"
+        class="hpp-input hpp-input-amount"
+        step="0.01"
+        min="0.01"
         placeholder="0.00"
       >
     </div>
@@ -1462,7 +1596,7 @@
     </div>
     <div class="hpp-result-row" style="margin-top: 10px;">
       <div class="hpp-result-label">Amount Posted to Payment Processor</div>
-      <div id="hpp_amount_output" class="hpp-result-value" style="color: #059669;"></div>
+      <div id="hpp_amount_output" class="hpp-result-value hpp-amount-positive"></div>
     </div>
   </div>
 </div>
